@@ -31,8 +31,8 @@ This system aims to improve information access efficiency and advance informatio
 ├── app                       - Python script for the application
 ├── model                     - Directory for model files
 ├── tests                     - Pytest code 
-├── notebooks                 - notebook to build model
-├── data                      - data to build model
+├── notebooks                 - Notebook to build model
+├── data                      - Data to build model
 ├── Jenkinsfile               - Jenkins pipeline script to describe the CI/CD process
 ├── docker-compose.yaml       - Docker Compose configuration file
 ├── Dockerfile                - Dockerfile for building the image

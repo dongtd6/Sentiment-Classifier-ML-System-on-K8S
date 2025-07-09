@@ -1,0 +1,7 @@
+[tool.black]
+line-length = 88
+target-version = ['py38'] # Hoặc phiên bản Python bạn đang dùng
+
+[tool.isort]
+profile = "black"
+line_length = 88 # Đảm bảo khớp với black

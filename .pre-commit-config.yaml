@@ -1,0 +1,10 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.4.2 # Hoặc phiên bản black mới nhất
+    hooks:
+      - id: black
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2 # Hoặc phiên bản isort mới nhất
+    hooks:
+      - id: isort

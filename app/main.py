@@ -3,7 +3,9 @@ import joblib
 import os
 from contextlib import asynccontextmanager
 from schema import PredictRequest, PredictResponse, BatchPredictRequest, BatchPredictResponse, HealthCheckResponse
-from utils.logging import logger
+#from utils.logging import logger
+from loguru import logger
+
 
 from opentelemetry import trace
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
@@ -14,40 +16,40 @@ from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 
 from functools import wraps
 
-# --- Cấu hình OpenTelemetry cho Jaeger ---
+# --- Config OpenTelemetry for Jaeger ---
 set_tracer_provider(
     TracerProvider(resource=Resource.create({SERVICE_NAME: "tsc"}))
 )
 tracer = get_tracer_provider().get_tracer("tsc", "1.0.1")
 jaeger_exporter = JaegerExporter(
-    agent_host_name="localhost", # Địa chỉ Jaeger Agent
-    agent_port=6831,             # Port mặc định của Jaeger Agent
+    agent_host_name="localhost", # Jaeger Agent adress
+    agent_port=6831,             # Port of Jaeger Agent
 )
 span_processor = BatchSpanProcessor(jaeger_exporter)
 get_tracer_provider().add_span_processor(span_processor)  
-# --- Kết thúc cấu hình OpenTelemetry ---
+# --- Finish config OpenTelemetry ---
 
 
 # --- Custom Trace Decorator ---
-def trace_span(span_name):
+def trace_span(span_name: str):
     """
-    Decorator để tạo một span OpenTelemetry cho một hàm bất đồng bộ có áp dụng cho async function.
+    Decorator to create a span OpenTelemetry for async function.
     """
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Tạo một span mới với tên đã chỉ định
+            # Create a new span with the given name
             with tracer.start_as_current_span(span_name) as span:
                 try:
-                    result = await func(*args, **kwargs) # "Inside function!": Gọi hàm gốc và chờ đợi kết quả
+                    result = await func(*args, **kwargs) # "Inside function!": call the original function
                     return result
                 except Exception as e:
-                    # Ghi nhận lỗi vào span nếu có exception
+                    # log the exception and set attributes on the span
                     span.set_attribute("error", True)
                     span.record_exception(e)
-                    raise # Đảm bảo exception vẫn được re-raise
+                    raise # re-raise the exception to propagate it
                 finally:
-                    pass # "After execution": Span tự động kết thúc khi khối 'with' thoát
+                    pass # "After execution": Span will be automatically ended when exiting the context
         return wrapper
     return decorator
 
@@ -63,6 +65,8 @@ async def lifespan(app: FastAPI):
     Lifespan context manager để tải model và vectorizer khi ứng dụng khởi động.
     Sử dụng app.state để lưu trữ model thay vì biến global.
     """
+
+    # ... Application Start Logic ...
     with tracer.start_as_current_span("model-loader") as span:
         logger.info("Application startup: Loading sentiment model and TF-IDF vectorizer...")
         try:
@@ -84,13 +88,13 @@ async def lifespan(app: FastAPI):
             span.set_attribute("error", True)
             span.record_exception(e)
             span.set_attribute("load_error_message", str(e))
-    yield 
+    yield # Yield control to the application    
 
-    # --- Application Shutdown ---
+    # --- Application Shutdown Logic ---
     logger.info("Application shutdown: Releasing resources...")
     app.state.sentiment_model = None
     app.state.tfidf_vectorizer = None
-    get_tracer_provider().force_flush() # Đảm bảo tất cả spans được flush trước khi ứng dụng dừng
+    get_tracer_provider().force_flush() # Ensure all spans are flushed before shutdown
     logger.info("Application shutdown: Resources released successfully.")
     span.set_attribute("shutdown_status", "success")
     span.set_attribute("tracer_flush_status", "success")
@@ -107,7 +111,7 @@ app = FastAPI(
 
 # --- Helper Function to Check Model Status ---
 @trace_span("check-models-loaded")
-async def check_models_loaded(app: FastAPI):
+def check_models_loaded():
     # Kiểm tra xem model và vectorizer đã được tải hay chưa
     sentiment_model = app.state.sentiment_model
     tfidf_vectorizer = app.state.tfidf_vectorizer   
@@ -128,9 +132,10 @@ async def check_models_loaded(app: FastAPI):
 )
 async def predict_single_comment(request: PredictRequest):
     logger.info("Make predictions...")
-    # Truy cập model và vectorizer từ app.state
+    # Access the model and vectorizer from app.state
     sentiment_model = app.state.sentiment_model
     tfidf_vectorizer = app.state.tfidf_vectorizer
+    # Check if models are loaded
     check_models_loaded() 
     comment_vectorized = tfidf_vectorizer.transform([request.comment])
     predicted_label = sentiment_model.predict(comment_vectorized)[0]
@@ -151,7 +156,7 @@ async def predict_single_comment(request: PredictRequest):
 )
 async def predict_batch_comments(request: BatchPredictRequest):
     logger.info(f"Received batch prediction request for {len(request.comments)} comments.")
-    # Truy cập model và vectorizer từ app.state
+    # Access the model and vectorizer from app.state
     sentiment_model = app.state.sentiment_model
     tfidf_vectorizer = app.state.tfidf_vectorizer
     if not request.comments:
@@ -165,7 +170,7 @@ async def predict_batch_comments(request: BatchPredictRequest):
             detail="Batch size exceeds the maximum limit of 1000 comments."
         )
     logger.info("Vectorizing comments for batch prediction...")
-    # Kiểm tra xem model và vectorizer đã được tải hay chưa-
+    # Check if models are loaded
     check_models_loaded() 
     comments_vectorized = tfidf_vectorizer.transform(request.comments)
     predicted_labels_raw = sentiment_model.predict(comments_vectorized)
@@ -174,7 +179,7 @@ async def predict_batch_comments(request: BatchPredictRequest):
         for comment, label in zip(request.comments, predicted_labels_raw)
     ]
     logger.info(f"Batch prediction complete: {len(results)} predictions made.")
-    # Trả về kết quả dưới dạng BatchPredictResponse
+    # Return the results as a BatchPredictResponse
     return BatchPredictResponse(predictions=results)
 
 
@@ -186,14 +191,14 @@ async def predict_batch_comments(request: BatchPredictRequest):
     summary="Health check",
     description="Checks the health status of the API and model loading."
 )
-async def health_check():
+def health_check():
     logger.info("Performing health check...")
-    # Truy cập model và vectorizer từ app.state
+    # Access the model and vectorizer from app.state
     sentiment_model = app.state.sentiment_model
     tfidf_vectorizer = app.state.tfidf_vectorizer
-    # Kiểm tra xem model và vectorizer đã được tải hay chưa
-    # check_models_loaded()
-    # Trả về trạng thái của ứng dụng
+    # Check if models are loaded
+    check_models_loaded()
+    # Return health status
     is_model_loaded = (sentiment_model is not None and tfidf_vectorizer is not None)
     status = "healthy" if is_model_loaded else "degraded"
     message = "API is healthy and models are loaded." if is_model_loaded else \

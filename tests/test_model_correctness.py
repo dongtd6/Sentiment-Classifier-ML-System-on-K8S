@@ -57,6 +57,7 @@ def test_positive_sentiment(loaded_models):
     text_vectorized = tfidf_vectorizer.transform(processed_text)
     prediction = sentiment_model.predict(text_vectorized)[0]
     assert prediction == "POS", f"Expected positive sentiment (POS) for '{text}', but got {prediction}"
+
 def test_negative_sentiment(loaded_models):
     sentiment_model, tfidf_vectorizer = loaded_models
     text = "rất tệ, tôi không thích nó"
@@ -64,6 +65,7 @@ def test_negative_sentiment(loaded_models):
     text_vectorized = tfidf_vectorizer.transform(processed_text)
     prediction = sentiment_model.predict(text_vectorized)[0]
     assert prediction == "NEG", f"Expected negative sentiment (NEG) for '{text}', but got {prediction}" 
+
 def test_neutral_sentiment(loaded_models):
     sentiment_model, tfidf_vectorizer = loaded_models
     text = "bình thường, dùng tạm được"

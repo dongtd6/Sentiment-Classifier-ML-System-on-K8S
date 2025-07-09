@@ -230,6 +230,12 @@ sudo nano /etc/hosts
 34.126.164.80 prometheus.tsc.vn
 34.126.164.80 jaeger.tsc.vn
 ```
+#### Apply ingress
+
+```
+kubectl apply -f helm-charts/ingress-configs
+```
+
 
 #### Prometheus
 

@@ -21,8 +21,47 @@ pipeline {
                 }
             }
             steps {
-                echo 'Testing model correctness..'
-                sh 'pip install -r requirements.txt && pytest'
+                echo 'Installing test dependencies...'
+                sh 'uv pip install -r requirements.txt'
+
+            }
+            // steps {
+            //     echo 'Testing model correctness..'
+            //     sh 'pytest'
+            //     //sh 'pytest tests/test_model_correctness.py' // Run the test script  
+            // }
+            steps {
+                echo 'Testing model correctness and checking coverage...'
+                script {
+                    try {
+                        // Chạy pytest với coverage và lưu kết quả vào biến
+                        // --cov=. để đo coverage cho toàn bộ project (thư mục hiện tại)
+                        // --cov-report=term-missing để hiển thị chi tiết các dòng thiếu test
+                        // --cov-report=xml để tạo báo cáo XML (có thể dùng cho các công cụ khác như SonarQube)
+                        // || true để đảm bảo lệnh không fail ngay cả khi test fail, chúng ta sẽ kiểm tra coverage sau
+                        def testOutput = sh(script: 'pytest --cov=. --cov-report=term-missing', returnStdout: true).trim()
+
+                        echo testOutput
+
+                        // Phân tích output để lấy phần trăm coverage
+                        def coverageMatch = testOutput =~ /TOTAL\s+\d+\s+\d+\s+(\d+)%/
+                        if (coverageMatch) {
+                            def coveragePercentage = coverageMatch[0][1].toInteger()
+                            echo "Code Coverage: ${coveragePercentage}%"
+
+                            if (coveragePercentage > 80) {
+                                echo "Coverage ${coveragePercentage}% is greater than 80%. Proceeding to next steps."
+                            } else {
+                                error "Coverage ${coveragePercentage}% is NOT greater than 80%. Failing build."
+                            }
+                        } else {
+                            error "Could not parse coverage percentage from pytest output."
+                        }
+                    } catch (e) {
+                        // Xử lý lỗi nếu pytest fail hoặc có vấn đề khác
+                        error "Tests failed or an error occurred during testing: ${e.message}"
+                    }
+                }
             }
         }
         stage('Build') {

@@ -22,6 +22,8 @@ This system aims to improve information access efficiency and advance informatio
    3.1 [Deploying to GCP](#deploying-to-gcp)  
    3.2 [CICD with Jenkins for GCE](#cicd-with-jenkins-for-gce)  
    3.3 [Monitoring](#monitoring)  
+   3.4 [Tracing](#tracing)  
+   3.5 [Logging](#logging)  
  
 ## Project Structure
 ```txt
@@ -44,9 +46,9 @@ This system aims to improve information access efficiency and advance informatio
 # LOCAL
 ## Demo 
 
-## Running in docker-compose
+### Running in docker-compose
 
-```
+```bash
 docker-compose up --build
 ```
 The service can be accessed via http://localhost:30001/docs
@@ -78,7 +80,6 @@ tar -xf google-cloud-cli-linux-x86_64.tar.gz
 Authenticate with GCP
 ```shell
 gcloud auth application-default login
-gcloud auth login
 ```
 
 ### Edit variables.tf with config you need
@@ -95,14 +96,13 @@ cd ..
 ![image alt text](<images/nginx-ingress-install.png>)
 ```shell
 kubectl create ns nginx-system
-kubens nginx-system
-helm upgrade --install nginx-ingress ./helm-charts/nginx-ingress
+helm upgrade --install nginx-ingress ./helm-charts/nginx-ingress -n nginx-system
 ```
 ### Update host
 - Replace the External IP above in `spec/rules/host` in file `helm-charts/model-deployment/templates/nginx-ingress.yaml`
 ![image alt text](<images/nginx-ingress-external-ip.png>)
 ```shell
-kubectl get svc
+kubectl get svc -n nginx-system
 ```
 ### Deploy Model
 ![image alt text](<images/nginx-update-config.png>)
@@ -112,7 +112,7 @@ helm upgrade --install tsc ./helm-charts/model-deployment/ --namespace model-ser
 ### Get IP of nginx ingress service
 ![image alt text](<images/get-ip-of-nginx-ingress-service.png>)
 
-```
+```bash
 kubectl get svc -n nginx-system
 ```
 
@@ -124,15 +124,15 @@ The service can be accessed via `http://[INGRESS_IP_ADDRESS].nip.com/docs`
 ## CICD with Jenkins
 
 ### Copy jenkin-node folder to your instance which created by terraform in previous step   
-```
+```bash
 scp -r ./jenkins-node external-ip-of-your-instance:~/   
 ```
 ### Ssh to your instance
-```
+```bash
 ssh external-ip-of-your-instance 
 ```
 ### Install Jenskins with Docker Compose
-```
+```bash
 cd jenkins-node
 chmod +x setup-jenkins.sh
 ./setup-jenkins.sh
@@ -171,7 +171,7 @@ Plugin for Jenkins: Docker, Docker Pipeline, Kubernetes plugin
 
 ### Install kubectl CLI on your computer
 ![image alt text](<images/kubectx-kubens-install.png>)
-```
+```bash
 curl -LO https://dl.k8s.io/release/v1.33.0/bin/linux/amd64/kubectl
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
@@ -214,43 +214,49 @@ This setup guide provides the steps to deploy Prometheus and Grafana for monitor
 
 ![image alt text](<images/monitoring-name-space.png>)
 
-```
+```bash
 kubectl create ns monitoring
 ```
 #### Edit host
 
 ![image alt text](<images/etc-host.png>)
 
-```
+```bash
 sudo nano /etc/hosts
 ```
 ```
-34.126.164.80 api.tsc.vn
-34.126.164.80 grafana.tsc.vn
-34.126.164.80 prometheus.tsc.vn
-34.126.164.80 jaeger.tsc.vn
+34.143.135.102 api.tsc.vn
+34.143.135.102 grafana.tsc.vn
+34.143.135.102 prometheus.tsc.vn
+34.143.135.102 jaeger.tsc.vn
+34.143.135.102 kibana.tsc.vn
 ```
+34.126.167.80 is IP of nginx ingress service, get it by command below and change it by your
+```bash
+kubectl get svc -n nginx-system
+```
+
 #### Apply ingress
 
-```
+```bash
 kubectl apply -f helm-charts/ingress-configs
 ```
 
 
-#### Prometheus
+### Prometheus
 
 Deploy Prometheus Operator CRDs 
 
 ![image alt text](<images/prometheus-operator-crds.png>)
 
-```
+```bash
 helm upgrade --install prometheus-crds ./helm-charts/prometheus-operator-crds -n monitoring
 ```
 
 Deploy Prometheus  
 ![image alt text](<images/prometheus.png>)
 
-```
+```bash
 helm upgrade --install prometheus ./helm-charts/prometheus -n monitoring
 ```
 
@@ -258,11 +264,11 @@ Prometheus Service can be accessed via `http://prometheus.tsc.vn`
 
 ![image alt text](<images/prometheus-web.png>)
 
-#### Grafana
+### Grafana
 
 ![image alt text](<images/grafana.png>)
 
-```
+```bash
 helm upgrade --install grafana ./helm-charts/grafana -n monitoring
 ```
 
@@ -271,17 +277,21 @@ with user admin and password is admin
 
 ![image alt text](<images/grafana-web.png>)
 
-#### Jaeger
+## Tracing
+
+**Tracing with Jaeger**
+
+### Jaeger
 
 Install Jaeger
 
 ![image alt text](<images/jaeger-tracing-helm.png>)
 ```
-kubectl create ns logging
+kubectl create ns tracing
 cd ./helm-charts/jaeger
 helm dependency build
 cd ../..
-helm upgrade --install jaeger-tracing ./helm-charts/jaeger-all-in-one -n logging
+helm upgrade --install jaeger-tracing ./helm-charts/jaeger-all-in-one -n tracing
 ```
 
 Jaeger query can be accessed via `http://jaeger.tsc.vn`
@@ -289,10 +299,52 @@ Jaeger query can be accessed via `http://jaeger.tsc.vn`
 ![image alt text](<images/jaeger-query-web.png>)
 
 
+## Loging
 
+**Logging with ELK**
 
+![image alt text](<images/elk.png>)
 
+```shell
+helm repo add elastic https://helm.elastic.co
+helm repo update
+```
 
+### Elasticsearch
 
+```shell
+helm upgrade --install elasticsearch elastic/elasticsearch -f ./helm-charts/elk/values-elasticsearch.yaml --version 8.5.1 -n logging
+```
 
+### Logstash
+```shell
+helm upgrade --install logstash elastic/logstash -f ./helm-charts/elk/values-logstash.yaml --version 8.5.1 -n logging
+```
+
+### Filebeat
+```shell
+helm upgrade --install filebeat elastic/filebeat -f ./helm-charts/elk/values-filebeat.yaml --version 8.5.1 -n logging
+```
+
+### Kibana
+
+```shell
+helm upgrade --install kibana elastic/kibana -f ./helm-charts/elk/values-kibana.yaml --version 8.5.1 -n logging
+```
+
+Kibana can be accessed via `http://kibana.tsc.vn` and login with password in values-elasticsearch.yaml 
+or get by this command:
+```bash
+kubectl get secrets --namespace=logging elasticsearch-master-credentials -ojsonpath='{.data.password}' | base64 -d
+```
+
+![image alt text](<images/kibana-password.png>)
+
+![image alt text](<images/kibana-web-login-elastic.png>)
+
+![image alt text](<images/kibana-homepage.png>)
+
+![image alt text](<images/kibana-log-event.png>)
+
+![image alt text](<images/kibana-web-stream.png>)
 

@@ -25,10 +25,10 @@ spec:
           containerPort: 9093
         resources:
             requests:
-              cpu: 200m
+              cpu: 50m
               memory: 300M
             limits:
-              cpu: 300m
+              cpu: 100m
               memory: 400M
         volumeMounts:
         - name: config-volume

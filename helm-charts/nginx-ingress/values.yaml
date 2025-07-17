@@ -136,7 +136,7 @@ controller:
   ## The resources of the Ingress Controller pods.
   resources:
     requests:
-      cpu: 100m
+      cpu: 50m
       memory: 128Mi
   # limits:
   #   cpu: 1

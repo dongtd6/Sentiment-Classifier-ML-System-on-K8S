@@ -108,6 +108,9 @@ async def lifespan(app: FastAPI):
 
     # --- Application Shutdown Logic ---
     logger.info("Application shutdown: Releasing resources...")
+    # del model  # Delete reference
+    # gc.collect()  # Force garbage collection
+
     app.state.sentiment_model = None
     app.state.tfidf_vectorizer = None
     get_tracer_provider().force_flush()  # Ensure all spans are flushed before shutdown

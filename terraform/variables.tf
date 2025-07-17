@@ -2,7 +2,7 @@
 // which can be accessed by var.project_id
 variable "project_id" {
   description = "The project ID to host the cluster in"
-  default     = "dongtd6"
+  default     = "dongtd2"
 }
 
 variable "zone" {
@@ -25,6 +25,11 @@ variable "node_count" {
   default     = "2"
 }
 
+variable "initial_node_count" {
+  description = "initial_node_count"
+  default     = "2"
+}
+
 variable "machine_type" {
   description = "Machine type for instance"
   default     = "e2-standard-2"
@@ -32,7 +37,7 @@ variable "machine_type" {
 
 variable "bucket" {
   description = "GCS bucket for MLE course"
-  default     = "dongtd6-bucket"
+  default     = "dongtd2-bucket"
 }
 
 variable "instance_name" {

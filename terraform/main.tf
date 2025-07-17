@@ -26,12 +26,15 @@ provider "google" {
 resource "google_container_cluster" "gke-cluster" {
   name     = "${var.project_id}-dev-gke"
   location = var.zone
-  initial_node_count = 2
+  initial_node_count = var.initial_node_count
   
+
+
   //remove_default_node_pool = true
   // Enabling Autopilot for this cluster
   //enable_autopilot = false
     node_config {
+    machine_type = var.machine_type
     disk_size_gb = var.default_disk_size
   }
 }
@@ -51,15 +54,6 @@ provider "kubernetes" {
   }
 }
 
-resource "kubernetes_namespace" "model_serving_namespace" {
-  metadata {
-    name = "model-serving"
-    labels = {
-      environment = "development"
-    }
-  }
-  depends_on = [google_container_cluster.gke-cluster]
-}
 
 # Grant admin role for default service account in "model-serving" namespace 
 resource "kubernetes_cluster_role_binding" "model_serving_admin_binding" {
@@ -79,6 +73,8 @@ resource "kubernetes_cluster_role_binding" "model_serving_admin_binding" {
     namespace = "model-serving"
   }
 }
+
+
 # -----------------------------------------------------------------------------
 # Create and permission for Jenkins Service Account
 resource "kubernetes_namespace" "jenkins_namespace" {
@@ -167,6 +163,7 @@ resource "kubernetes_cluster_role_binding" "jenkins_cluster_role_binding" {
 }
 # -----------------------------------------------------------------------------
 
+
 //resource "google_container_node_pool" "node_pool" {
 //  name       = "develop-node-pool"
 //  cluster    = "${var.project_id}-dev-gke"
@@ -181,6 +178,9 @@ resource "kubernetes_cluster_role_binding" "jenkins_cluster_role_binding" {
 //  }
 //  depends_on = [google_container_cluster.gke-cluster]
 //}
+
+
+
 
 resource "google_compute_instance" "new-node"{
   name = var.instance_name
@@ -215,6 +215,7 @@ resource "google_storage_bucket" "new-bucket" {
   depends_on = [google_container_cluster.gke-cluster]
 }
 
+
 resource "google_compute_firewall" "firewall_jenkins_port"{
   name = var.firewall_jenkins_port
   network = "default"
@@ -223,11 +224,49 @@ resource "google_compute_firewall" "firewall_jenkins_port"{
     ports = ["8081","50000"]
   }
   source_ranges = ["0.0.0.0/0"] //Allow all traffic
-  depends_on = [google_container_cluster.gke-cluster]
+  depends_on = [google_compute_instance.new-node]
 }
 
 
+resource "kubernetes_namespace" "model_serving_namespace" {
+  metadata {
+    name = "model-serving"
+    labels = {
+      environment = "development"
+    }
+  }
+  depends_on = [google_container_cluster.gke-cluster]
+}
 
+resource "kubernetes_namespace" "monitoring_namespace" {
+  metadata {
+    name = "monitoring"
+    labels = {
+      environment = "development"
+    }
+  }
+  depends_on = [google_container_cluster.gke-cluster]
+}
+
+resource "kubernetes_namespace" "logging_namespace" {
+  metadata {
+    name = "logging"
+    labels = {
+      environment = "development"
+    }
+  }
+  depends_on = [google_container_cluster.gke-cluster]
+}
+
+resource "kubernetes_namespace" "tracing_namespace" {
+  metadata {
+    name = "tracing"
+    labels = {
+      environment = "development"
+    }
+  }
+  depends_on = [google_container_cluster.gke-cluster]
+}
 
 
 

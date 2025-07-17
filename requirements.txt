@@ -10,6 +10,7 @@ scikit-learn==1.0.2
 uvicorn[standard]==0.22.0
 gunicorn==23.0.0
 
+deprecated==1.2.13
 opentelemetry-api
 opentelemetry-sdk
 opentelemetry-exporter-jaeger

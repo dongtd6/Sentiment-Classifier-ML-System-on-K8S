@@ -32,10 +32,10 @@ spec:
           protocol: TCP
         resources:
           limits:
-            cpu: 200m
+            cpu: 100m
             memory: 50Mi
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 30Mi
         volumeMounts:
         - mountPath: /host/proc

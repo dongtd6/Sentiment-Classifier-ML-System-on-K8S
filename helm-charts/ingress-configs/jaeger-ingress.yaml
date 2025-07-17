@@ -2,10 +2,11 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: jaeger-ingress
-  namespace: monitoring
+  namespace: tracing
   annotations:
     kubernetes.io/ingress.class: "nginx"
-  #   nginx.ingress.kubernetes.io/rewrite-target: /$2 # Jaeger UI cũng cần rewrite nếu dùng subpath
+    # Tùy chọn: Nếu bạn muốn kibana ở đường dẫn con (e.g., /kibana) và kibana không được cấu hình basePath
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx # Đảm bảo sử dụng Ingress class NGINX
   rules:

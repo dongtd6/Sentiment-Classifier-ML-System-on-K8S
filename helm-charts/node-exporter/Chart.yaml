@@ -1,6 +1,6 @@
 apiVersion: v2
-name: tsc
-description: My Helm Chart for my application
+name: lens
+description: Helm Chart for Node Exporter
 
 # A chart can be `application` or `library`,
 # we don't use `library` so often
@@ -14,5 +14,5 @@ version: 0.1.0
 appVersion: 1.0.0
 
 maintainers:
-  - email: dongtd6@gmail.com
-    name: dongtd6
+- email: dongtd6@gmail.com
+  name: dongtd6

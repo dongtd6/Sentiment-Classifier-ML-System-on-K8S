@@ -1,3 +1,4 @@
+import gc
 import os
 from contextlib import asynccontextmanager
 from functools import wraps
@@ -62,6 +63,16 @@ def trace_span(span_name: str):
     return decorator
 
 
+# Simple decorator
+def trace_span_simple(func):
+    def wrap():
+        with tracer.start_as_current_span() as span:
+            result = func()
+            return result
+
+    return wrap
+
+
 # --- Model Loading Configuration ---
 MODEL_DIR = "./model"
 MODEL_PATH = os.path.join(MODEL_DIR, "model.pkl")
@@ -108,11 +119,9 @@ async def lifespan(app: FastAPI):
 
     # --- Application Shutdown Logic ---
     logger.info("Application shutdown: Releasing resources...")
-    # del model  # Delete reference
-    # gc.collect()  # Force garbage collection
-
-    app.state.sentiment_model = None
-    app.state.tfidf_vectorizer = None
+    del app.state.sentiment_model
+    del app.state.tfidf_vectorizer
+    gc.collect()
     get_tracer_provider().force_flush()  # Ensure all spans are flushed before shutdown
     logger.info("Application shutdown: Resources released successfully.")
     span.set_attribute("shutdown_status", "success")

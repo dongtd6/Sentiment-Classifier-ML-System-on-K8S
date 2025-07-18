@@ -1,3 +1,4 @@
+import functools
 import gc
 import os
 from contextlib import asynccontextmanager
@@ -65,9 +66,13 @@ def trace_span(span_name: str):
 
 # Simple decorator
 def trace_span_simple(func):
-    def wrap():
-        with tracer.start_as_current_span() as span:
-            result = func()
+    @functools.wraps(
+        func
+    )  # functools.wraps sẽ giúp hàm wrap giữ lại metadata của hàm gốc > rất hữu ích cho debugging và các công cụ introspection.
+    def wrap(*args, **kwargs):
+        func_name = func.__name__  # Lấy tên hàm từ thuộc tính __name__ của hàm gốc
+        with tracer.start_as_current_span(func_name) as span:
+            result = func(*args, **kwargs)  # Truyền tất cả các tham số vào hàm gốc
             return result
 
     return wrap
@@ -140,7 +145,7 @@ app = FastAPI(
 
 
 # --- Helper Function to Check Model Status ---
-@trace_span("check-models-loaded")
+@trace_span_simple
 def check_models_loaded():
     # Kiểm tra xem model và vectorizer đã được tải hay chưa
     sentiment_model = app.state.sentiment_model
@@ -154,7 +159,7 @@ def check_models_loaded():
 
 
 # --- Prediction Endpoint (Single Comment) ---
-@trace_span("predict-single-comment-endpoint")
+@trace_span_simple
 @app.post(
     "/predict/",
     response_model=PredictResponse,
@@ -177,7 +182,7 @@ async def predict_single_comment(request: PredictRequest):
 
 
 # --- Prediction Endpoint (Batch Comments) ---
-@trace_span("predict-batch-comments-endpoint")
+@trace_span_simple
 @app.post(
     "/predict_batch/",
     response_model=BatchPredictResponse,
@@ -215,7 +220,7 @@ async def predict_batch_comments(request: BatchPredictRequest):
 
 
 # --- Health Check Endpoint ---
-@trace_span("health-check-endpoint")
+@trace_span_simple
 @app.get(
     "/health",
     response_model=HealthCheckResponse,

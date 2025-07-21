@@ -55,10 +55,25 @@ variable "boot_disk_size" {
   default     = 50
 }
 
-variable "firewall_jenkins_port" {
-  description = "Name of the firewall rule"
-  default     = "allow-jenkins-port"
+
+variable "firewall_jenkins_port_name" {
+  description = "The name for the Jenkins firewall rule."
+  type        = string
+  default     = "jenkins-allow-ports" 
 }
+
+variable "firewall_jenkins_port_ranges" {
+  description = "List of TCP ports to allow for Jenkins."
+  type        = list(string)
+  default     = ["8081", "50000"] # Giá trị mặc định
+}
+
+variable "firewall_jenkins_source_ranges" {
+  description = "List of source IP ranges for the Jenkins firewall rule."
+  type        = list(string)
+  default     = ["0.0.0.0/0"] # Giá trị mặc định
+}
+
 
 variable "ssh_keys" {
   description = "Value of the public ssh key"

@@ -1,4 +1,4 @@
-# Text Sentiment Classifier
+# Sentiment Classifier ML System on K8S 
 
 ## Introduction
 
@@ -28,7 +28,6 @@ This system aims to improve information access efficiency and advance informatio
 ## Project Structure
 ```txt
 ├── terraform                 - Directory for Terraform to build GKE
-├── jenkins-node              - Directory for Jenkins setup
 ├── helm-charts               - Directory for Helm chart to deploy the application
 ├── app                       - Python script for the application
 ├── model                     - Directory for model files
@@ -77,14 +76,17 @@ tar -xf google-cloud-cli-linux-x86_64.tar.gz
 ```
 ![image alt text](<images/google-cloud-cli-nstall.png>)
 
-Authenticate with GCP
+
+### Authenticate with GCP
 ```shell
 gcloud auth application-default login
 ```
 
 ### Edit variables.tf with config you need
 
-### Provision a new cluster
+### Provision a new cluster by Terraform
+![image alt text](<images/terraform-apply.png>)
+
 ```shell
 cd terraform
 terraform init
@@ -123,26 +125,23 @@ The service can be accessed via `http://[INGRESS_IP_ADDRESS].nip.com/docs`
 
 ## CICD with Jenkins
 
-### Copy jenkin-node folder to your instance which created by terraform in previous step   
+### Get Jenkins VM IP   
+![image alt text](<images/jenkins-node-ip.png>)
 ```bash
-scp -r ./jenkins-node external-ip-of-your-instance:~/   
+gcloud compute instances list --format="table(name,zone,networkInterfaces[0].accessConfigs[0].natIP:label=EXTERNAL_IP,status)"
 ```
-### Ssh to your instance
-```bash
-ssh external-ip-of-your-instance 
-```
-### Install Jenskins with Docker Compose
-```bash
-cd jenkins-node
-chmod +x setup-jenkins.sh
-./setup-jenkins.sh
-```
-![image alt text](<images/jenkins-type-Y-to-install.png>)
-![image alt text](<images/jenkins-password.png>)
 
-### Copy passsword after Jenkins installed & login with it
+### SSH to VM and get Jenkins password
+![image alt text](<images/jenkins-password-docker.png>)
+```bash
+ssh your-jenkins-vm-ip
+sudo docker exec -it jenkins sh
+cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+### Copy passsword & login with it at http://external-ip-of-your-instance:8081
 ![image alt text](<images/jenkins-login.png>)
-### http://external-ip-of-your-instance:8081
+### 
 ![image alt text](<images/jenkins-install-suggested-plugins.png>)
 ![image alt text](<images/jenkins-install-suggested-plugins-wait.png>)
 ![image alt text](<images/jenkins-getting-started.png>)

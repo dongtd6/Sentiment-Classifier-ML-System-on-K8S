@@ -80,6 +80,7 @@ pipeline {
         stage('Deploy') {
             agent {
                 kubernetes {
+                    //cloud 'gke-cluster' // name of the Kubernetes cloud configured in Jenkins if you have multiple clusters
                     containerTemplate {
                         name 'helm-container' // Name of the container to be used for helm upgrade
                         image 'quandvrobusto/jenkins:lts-jdk17' //  alpine/helm:3.14.0 The image containing helm

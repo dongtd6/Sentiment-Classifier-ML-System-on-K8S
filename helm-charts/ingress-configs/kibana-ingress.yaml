@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: logging # Đảm bảo đúng namespace
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    # Tùy chọn: Nếu bạn muốn kibana ở đường dẫn con (e.g., /kibana) và kibana không được cấu hình basePath
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: kibana.tsc.vn # Thay bằng domain hoặc IP.nip.io của bạn
+    http:
+      paths:
+      - path: / # Đường dẫn bạn muốn truy cập kibana qua
+        pathType: Prefix
+        backend:
+          service:
+            name: kibana-kibana # Tên service của kibana (thường là 'kibana')
+            port:
+              number: 5601 # Cổng mặc định của kibana HTTP

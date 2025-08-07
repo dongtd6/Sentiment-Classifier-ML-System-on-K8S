@@ -2,9 +2,15 @@
 
 ## Introduction
 
-Project focuses on implementing an efficient text summarization system. I leverage machine learning techniques to distill essential information from lengthy documents, providing concise and meaningful summaries.
+This project develops a Text Sentiment Classifier using FastAPI for the model serving API, built with pandas, scikit-learn, and joblib.
 
-This system aims to improve information access efficiency and advance information extraction technology. Model is built using Python libraries like pandas, scikit-learn, and joblib.
+Our MLOps approach automates the entire lifecycle:
+
+CI/CD: We use Jenkins and Terraform for infrastructure provisioning, with Helm for deploying Docker images onto Kubernetes (K8s).
+
+Monitoring & Observability: The system leverages ELK (Elasticsearch, Logstash, Kibana) for centralized logging, Prometheus for metrics, Grafana for visualization, and Jaeger for distributed tracing. Nginx acts as an Ingress controller, routing traffic to our services.
+
+This ensures a robust, scalable, and fully observable AI system.
 
 ## Overall System Architecture
 
@@ -216,7 +222,7 @@ This setup guide provides the steps to deploy Prometheus and Grafana for monitor
 ```bash
 kubectl create ns monitoring
 ```
-#### Edit host
+#### Edit host on your computer to access service by domain
 
 ![image alt text](<images/etc-host.png>)
 
@@ -224,18 +230,19 @@ kubectl create ns monitoring
 sudo nano /etc/hosts
 ```
 ```
-34.143.135.102 api.tsc.vn
-34.143.135.102 grafana.tsc.vn
-34.143.135.102 prometheus.tsc.vn
-34.143.135.102 jaeger.tsc.vn
-34.143.135.102 kibana.tsc.vn
+34.126.167.80 api.tsc.vn
+34.126.167.80 grafana.tsc.vn
+34.126.167.80 prometheus.tsc.vn
+34.126.167.80 jaeger.tsc.vn
+34.126.167.80 kibana.tsc.vn
 ```
-34.126.167.80 is IP of nginx ingress service, get it by command below and change it by your
+34.126.167.80 is IP of nginx ingress service, get it by command below and change it in hosts by your
+
 ```bash
 kubectl get svc -n nginx-system
 ```
 
-#### Apply ingress
+#### Apply ingress configs
 
 ```bash
 kubectl apply -f helm-charts/ingress-configs

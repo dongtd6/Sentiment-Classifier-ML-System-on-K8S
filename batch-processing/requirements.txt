@@ -1,0 +1,6 @@
+psycopg2-binary
+python-dotenv
+sqlalchemy
+pandas
+pyarrow
+pyspark

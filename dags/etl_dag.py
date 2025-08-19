@@ -21,7 +21,7 @@ with DAG(
             "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
         },
     )
-    extract_task = SparkSubmitOperator(
+    transform_task = SparkSubmitOperator(
         task_id="transform_to_silver",
         application="/opt/jobs/transform_job.py",
         conn_id="spark_default",
@@ -32,7 +32,7 @@ with DAG(
         },
     )
 
-    extract_task = SparkSubmitOperator(
+    summary_task = SparkSubmitOperator(
         task_id="create_gold_summary",
         application="/opt/jobs/summary_job.py",
         conn_id="spark_default",
@@ -43,7 +43,7 @@ with DAG(
         },
     )
 
-    extract_task = SparkSubmitOperator(
+    predict_task = SparkSubmitOperator(
         task_id="predict_and_save",
         application="/opt/jobs/predict_job.py",
         conn_id="spark_default",

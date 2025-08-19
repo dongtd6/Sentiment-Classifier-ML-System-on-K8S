@@ -1,30 +1,30 @@
+# Ví dụ DAG ETL với SparkSubmitOperator
 from datetime import datetime
 
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from airflow.sdk import DAG
+from airflow.sdk import DAG, task
 
-# Define the Docker image for Spark jobs
-# This image should contain the necessary Spark and PostgreSQL JDBC driver setup
+# Docker Image for Spark jobs
+# Ensure this image has Spark and the necessary dependencies installed
+# You can build this image with the required JAR files included
 SPARK_JOB_IMAGE = "dongtd6/airflow-job-scripts:latest"
 
 with DAG(
     dag_id="full_etl_pipeline", start_date=datetime(2025, 8, 1), schedule="0 0 * * *"
 ) as dag:
+
     # Task 1: Kéo dữ liệu (Extract)
     extract_task = SparkSubmitOperator(
         task_id="extract_to_bronze",
-        # Pass master as a top-level argument
-        master="k8s://https://kubernetes.default.svc",
         application="/opt/jobs/extract_job.py",
+        # Pass the JDBC JAR file to Spark's classpath
         driver_class_path="/opt/jars/postgresql-42.6.0.jar",
-        # Keep Kubernetes-specific conf parameters here
+        # Pass the Java 17+ configuration options
         conf={
             "spark.kubernetes.container.image": SPARK_JOB_IMAGE,
             "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
-            "spark.kubernetes.namespace": "orchestration",
-            "spark.executor.instances": "1",
-            "spark.driver.serviceAccountName": "airflow",
         },
+        # Ensure the JAR file is available in the cluster (e.g., via a shared volume or image build)
         jars="/opt/jars/postgresql-42.6.0.jar",
     )
 

@@ -23,3 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 #CMD ["python", "extract_job.py"]
+
+#docker build -t dongtd6/airflow-job-scripts .
+#docker push dongtd6/airflow-job-scripts:latest

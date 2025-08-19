@@ -5,7 +5,7 @@ from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOpe
 from airflow.sdk import DAG, task
 
 # Tên Docker Image chứa tất cả các job
-SPARK_JOB_IMAGE = "dongtd6/spark-etl-pipeline:latest"
+SPARK_JOB_IMAGE = "dongtd6/airflow-job-scripts:latest"
 
 with DAG(
     dag_id="full_etl_pipeline", start_date=datetime(2025, 8, 1), schedule="0 0 * * *"

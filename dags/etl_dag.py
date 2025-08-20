@@ -7,7 +7,7 @@ from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOpe
 with DAG(
     dag_id="full_etl_pipeline",
     start_date=datetime(2025, 8, 1),
-    schedule="0 0 * * *",
+    schedule="0 0 * * *",  # 0h00 everyday
     catchup=False,
 ) as dag:
 
@@ -15,43 +15,45 @@ with DAG(
         task_id="extract_to_bronze",
         application="/opt/jobs/extract_job.py",
         conn_id="spark_default",
-        jars="/opt/jars/postgresql-42.6.0.jar",
+        # jars="/opt/jars/postgresql-42.6.0.jar",
         conf={
             "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
+            "spark.jars": "/opt/jobs/jars/postgresql-42.6.0.jar",  # driver JDBC
             "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
         },
+        driver_class_path="/opt/jobs/jars/postgresql-42.6.0.jar",
     )
-    transform_task = SparkSubmitOperator(
-        task_id="transform_to_silver",
-        application="/opt/jobs/transform_job.py",
-        conn_id="spark_default",
-        jars="/opt/jars/postgresql-42.6.0.jar",
-        conf={
-            "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
-            "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        },
-    )
+    # transform_task = SparkSubmitOperator(
+    #     task_id="transform_to_silver",
+    #     application="/opt/jobs/transform_job.py",
+    #     conn_id="spark_default",
+    #     jars="/opt/jars/postgresql-42.6.0.jar",
+    #     conf={
+    #         "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
+    #         "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    #     },
+    # )
 
-    summary_task = SparkSubmitOperator(
-        task_id="create_gold_summary",
-        application="/opt/jobs/summary_job.py",
-        conn_id="spark_default",
-        jars="/opt/jars/postgresql-42.6.0.jar",
-        conf={
-            "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
-            "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        },
-    )
+    # summary_task = SparkSubmitOperator(
+    #     task_id="create_gold_summary",
+    #     application="/opt/jobs/summary_job.py",
+    #     conn_id="spark_default",
+    #     jars="/opt/jars/postgresql-42.6.0.jar",
+    #     conf={
+    #         "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
+    #         "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    #     },
+    # )
 
-    predict_task = SparkSubmitOperator(
-        task_id="predict_and_save",
-        application="/opt/jobs/predict_job.py",
-        conn_id="spark_default",
-        jars="/opt/jars/postgresql-42.6.0.jar",
-        conf={
-            "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
-            "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        },
-    )
+    # predict_task = SparkSubmitOperator(
+    #     task_id="predict_and_save",
+    #     application="/opt/jobs/predict_job.py",
+    #     conn_id="spark_default",
+    #     jars="/opt/jars/postgresql-42.6.0.jar",
+    #     conf={
+    #         "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
+    #         "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    #     },
+    # )
 
-    extract_task >> transform_task >> summary_task >> predict_task
+    # extract_task >> transform_task >> summary_task >> predict_task

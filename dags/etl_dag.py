@@ -1,28 +1,33 @@
-# etl_dag.py
+# dags/etl_dag.py
 from datetime import datetime
 
 from airflow import DAG
-from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
+
+default_args = {
+    "owner": "airflow",
+    "start_date": datetime(2025, 1, 1),
+}
 
 with DAG(
-    dag_id="full_etl_pipeline",
-    start_date=datetime(2025, 8, 1),
-    schedule="0 0 * * *",  # 0h00 everyday
+    dag_id="run_extract_job",
+    default_args=default_args,
+    schedule_interval=None,  # chỉ chạy khi trigger
     catchup=False,
 ) as dag:
 
-    extract_task = SparkSubmitOperator(
-        task_id="extract_to_bronze",
-        application="/opt/jobs/extract_job.py",
-        conn_id="spark_default",
-        # jars="/opt/jars/postgresql-42.6.0.jar",
-        conf={
-            "spark.kubernetes.container.image": "dongtd6/airflow-job-scripts:latest",
-            "spark.jars": "/opt/jobs/jars/postgresql-42.6.0.jar",  # driver JDBC
-            "spark.driver.extraJavaOptions": "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        },
-        driver_class_path="/opt/jobs/jars/postgresql-42.6.0.jar",
+    run_spark_job = KubernetesPodOperator(
+        task_id="run_spark_job",
+        name="extract-job",
+        namespace="airflow",  # namespace của airflow worker trên k8s
+        image="dongtd6/airflow-job-scripts:latest",  # image bạn build
+        cmds=["python", "extract_job.py"],  # command chạy trong container
+        is_delete_operator_pod=True,
+        get_logs=True,
     )
+
     # transform_task = SparkSubmitOperator(
     #     task_id="transform_to_silver",
     #     application="/opt/jobs/transform_job.py",

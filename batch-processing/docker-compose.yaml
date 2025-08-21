@@ -23,6 +23,8 @@ services:
   #   # And set the image name
   #   image: text-sentiment-classifier
 
-  #docker-compose up --build
-  #docker compose up --build
+  # docker-compose up --build
+  # docker compose up --build
+  # docker exec -it b4270f69c18a  /bin/bash
+  # spark-submit   --driver-class-path jars/postgresql-42.6.0.jar   --conf "spark.driver.extraJavaOptions=--add-opens=java.base/java.nio=ALL-UNNAMED"   extract_job.py
 

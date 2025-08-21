@@ -26,6 +26,7 @@ if __name__ == "__main__":
     )
 
     # jdbc:postgresql://localhost:5432/
+    # jdbc:postgresql://postgresql.storage.svc.cluster.local:5432/crm_db"
 
     dataframe.show()
 

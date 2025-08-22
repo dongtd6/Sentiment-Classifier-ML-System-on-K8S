@@ -1,6 +1,7 @@
 # Dockerfile for batch processing job
 # This Dockerfile sets up a Python environment with Java 17 for running the batch processing job
 # It installs necessary dependencies and copies the job script into the container
+#images name: dongtd6/airflow-job-scripts
 FROM python:3.8-slim
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk && \

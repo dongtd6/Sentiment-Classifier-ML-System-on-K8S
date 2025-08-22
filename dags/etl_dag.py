@@ -18,9 +18,9 @@ with DAG(
 ) as dag:
 
     run_spark_job = KubernetesPodOperator(
-        task_id="run_spark_job",
+        task_id="extract_job",
         name="extract-job",
-        namespace="airflow",  # namespace của airflow worker trên k8s
+        namespace="orchestration",  # namespace của airflow worker trên k8s
         image="dongtd6/airflow-job-scripts:latest",  # image bạn build
         cmds=["python", "extract_job.py"],  # command chạy trong container
         is_delete_operator_pod=True,

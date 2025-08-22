@@ -2,7 +2,9 @@
 from datetime import datetime
 
 from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import (
+    KubernetesPodOperator,
+)
 
 default_args = {
     "owner": "airflow",
@@ -10,9 +12,10 @@ default_args = {
 }
 
 with DAG(
-    dag_id="run_extract_job",
+    dag_id="full_etl_pipeline",
+    start_date=datetime(2025, 8, 1),
+    schedule="0 0 * * *",
     default_args=default_args,
-    schedule_interval=None,  # chỉ chạy khi trigger
     catchup=False,
 ) as dag:
 

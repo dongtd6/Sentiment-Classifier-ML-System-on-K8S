@@ -7,7 +7,7 @@ resource "google_compute_firewall" "firewall_jenkins_port"{
     ports = var.firewall_jenkins_port_ranges
   }
   source_ranges = var.firewall_jenkins_source_ranges
-  depends_on = [google_compute_instance.vm_instance]
+  //depends_on = [google_compute_instance.vm_instance]
 }
 
 

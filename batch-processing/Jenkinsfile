@@ -10,7 +10,7 @@ pipeline {
 
     environment{
         registry = 'dongtd6/dongtd6/airflow-job-scripts:latest' //Image id push to Docker Hub
-        registryCredential = 'dockerhub'    //Credential on Jenkins to login Docker Hub  
+        registryCredential = 'DockerHubPAT'    //Credential on Jenkins to login Docker Hub  
     }
 
     stages {

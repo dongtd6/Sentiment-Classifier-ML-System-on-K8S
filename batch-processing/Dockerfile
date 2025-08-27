@@ -9,13 +9,13 @@ RUN apt-get update && \
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
 WORKDIR /job
-COPY requirements.txt .
 COPY ./jars ./jars
-COPY ./*.py ./
+COPY ./jobs ./jobs
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
 #CMD ["python", "extract_job.py"]
-
+#COPY ./*.py ./
 #docker build -t dongtd6/airflow-job-scripts .
 #docker push dongtd6/airflow-job-scripts:latest

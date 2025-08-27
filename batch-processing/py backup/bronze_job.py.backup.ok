@@ -1,0 +1,62 @@
+# jobs/bronze_job.py
+from delta import configure_spark_with_delta_pip
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, current_date, date_sub, to_date
+if __name__ == "__main__":
+    builder = (
+    SparkSession.builder.master("local[*]")
+        .appName("Ingest data")
+        .config("spark.ui.port", "4042")
+        .config("spark.jars", "../jars/postgresql-42.6.0.jar,../jars/deequ-2.0.3-spark-3.3.jar,../jars/hadoop-aws-3.3.2.jar,../jars/aws-java-sdk-bundle-1.11.1026.jar")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    )
+    spark = configure_spark_with_delta_pip(builder).getOrCreate()
+    # Extract: Read PostgreSQL
+    dataframe = (
+        spark.read.format("jdbc")
+        .option("url", "jdbc:postgresql://localhost:5432/crm_db")
+        .option("dbtable", "product_reviews")
+        .option("user", "pgadmin")
+        .option("password", "pw123")
+        .option("driver", "org.postgresql.Driver")
+        .load()
+    ) 
+    # jdbc:postgresql://localhost:5432/
+    # jdbc:postgresql://postgresql.storage.svc.cluster.local:5432/crm_db"
+    dataframe.show()
+    dataframe.persist()  # cache the DataFrame in memory
+    dataframe.printSchema()
+    print(f"Read {dataframe.count()} rows from PostgreSQL.")
+    # Transform: Spark SQL Transformations ---
+    yesterday = date_sub(current_date(), 1)
+    df_transformed = dataframe.select(
+        col("review_id"),
+        col("product_id"),
+        col("review"),
+        col("created_at"),
+        col("source"),
+    ).where(to_date(col("created_at")) == yesterday)
+    df_transformed.show()  # Show the transformed DataFrame
+
+    #http://minio.storage.svc.cluster.local:9000"
+    # Update config to write to MinIO
+    hadoop_conf = spark._jsc.hadoopConfiguration()
+    hadoop_conf.set("fs.s3a.access.key", "minio")
+    hadoop_conf.set("fs.s3a.secret.key", "minio123")
+    hadoop_conf.set("fs.s3a.endpoint", "http://localhost:9000")
+    hadoop_conf.set("fs.s3a.path.style.access", "true")
+    hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    hadoop_conf.set("fs.s3a.connection.ssl.enabled", "false")
+
+    # Load: Write the DataFrame to a Delta table
+    delta_table_path = "s3a://tsc-bucket/raw_reviews"
+    hive_table_name = "raw_reviews_delta_lake"
+    print("🚀 Writing to Delta table in MinIO...")  # 📝 Write Delta table to MinIO bucket tsc-bucket/raw_reviews
+    df_transformed.write.format("delta").mode("overwrite").save(delta_table_path)  
+    # Register the Delta table in the Hive metastore
+    spark.sql(f"CREATE TABLE IF NOT EXISTS {hive_table_name} USING DELTA LOCATION '{delta_table_path}'")
+    print(f"✅ Written to Delta table at {delta_table_path} and registered as Hive table {hive_table_name}")
+    spark.stop()
+
+    #df.write.format("delta").mode("overwrite").saveAsTable("raw_reviews_delta_lake")

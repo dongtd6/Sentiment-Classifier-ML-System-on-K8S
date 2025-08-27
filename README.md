@@ -115,7 +115,7 @@ kubectl get svc -n nginx-system
 ### Deploy Model
 ![image alt text](<images/nginx-update-config.png>)
 ```shell
-helm upgrade --install tsc ./helm-charts/model-deployment/ --namespace model-serving
+helm upgrade --install tsc ./helm-charts/model-deployment/ --namespace model-serving --create-namespace
 ```
 ### Get IP of nginx ingress service
 ![image alt text](<images/get-ip-of-nginx-ingress-service.png>)

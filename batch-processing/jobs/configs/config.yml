@@ -1,0 +1,27 @@
+# jobs/configs/config.yml
+postgres:
+  url: "jdbc:postgresql://postgresql.storage.svc.cluster.local:5432/crm_db"
+  user: "pgadmin"
+  password: "pw123"
+  table: "product_reviews"
+
+s3:
+  endpoint: http://minio-tenant-hl.storage.svc.cluster.local:9000
+  access_key: minio
+  secret_key: minio123
+
+predict:
+  api_url: "http://tsc.model-serving.svc.cluster.local:3000/predict_batch"
+  batch_size: 100
+  # http://tsc.model-serving.svc.cluster.local:3000/predict_batch")
+  # http://minio-tenant-hl.storage.svc.cluster.local:9000
+  # jdbc:postgresql://postgresql.storage.svc.cluster.local:5432/crm_db
+  # http://api.tsc.vn/predict_batch
+  # jdbc:postgresql://localhost:5432/crm_db
+  # localhost:9000
+
+  # lakehouse_path: "s3a://tsc-bucket/lakehouse"
+  # clean_path: "s3a://tsc-bucket/clean_reviews"
+  # curated_path: "s3a://tsc-bucket/curated_reviews"
+  # analytics_path: "s3a://tsc-bucket/analytics"
+  

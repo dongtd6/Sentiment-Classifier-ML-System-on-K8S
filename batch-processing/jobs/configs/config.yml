@@ -11,7 +11,7 @@ s3:
   secret_key: minio123
 
 predict:
-  api_url: "http://tsc.model-serving.svc.cluster.local:3000/predict_batch"
+  api_url: "http://tsc.model-serving.svc.cluster.local:30000/predict_batch"
   batch_size: 100
   # http://tsc.model-serving.svc.cluster.local:3000/predict_batch")
   # http://minio-tenant-hl.storage.svc.cluster.local:9000

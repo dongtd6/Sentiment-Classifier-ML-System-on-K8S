@@ -29,8 +29,12 @@ This ensures a robust, scalable, and fully observable AI system.
    3.2 [CICD with Jenkins for GCE](#cicd-with-jenkins-for-gce)  
    3.3 [Monitoring](#monitoring)  
    3.4 [Tracing](#tracing)  
-   3.5 [Logging](#logging)  
- 
+   3.5 [Logging](#logging)
+4. [Data](#data)
+
+   4.1 [Batch Processing](#batch-processing)  
+   4.2 [Stream Processing](#stream-processing)  
+
 ## Project Structure
 ```txt
 ├── terraform                 - Directory for Terraform to build GKE
@@ -230,13 +234,25 @@ kubectl create ns monitoring
 sudo nano /etc/hosts
 ```
 ```
-34.126.167.80 api.tsc.vn
-34.126.167.80 grafana.tsc.vn
-34.126.167.80 prometheus.tsc.vn
-34.126.167.80 jaeger.tsc.vn
-34.126.167.80 kibana.tsc.vn
+34.143.169.103 api.tsc.vn
+34.143.169.103 grafana.tsc.vn
+34.143.169.103 prometheus.tsc.vn
+34.143.169.103 jaeger.tsc.vn
+34.143.169.103 kibana.tsc.vn
+
+34.143.169.103 airflow.tsc.vn
+34.143.169.103 minio.tsc.vn
+34.143.169.103 postgresql.tsc.vn
+34.143.169.103 trino.tsc.vn
+
+34.143.169.103 kafka.tsc.vn
+34.143.169.103 debezium.tsc.vn
+34.143.169.103 flink.tsc.vn
+
+34.143.169.103 mlflow.tsc.vn
+34.143.169.103 kubeflow.tsc.vn
 ```
-34.126.167.80 is IP of nginx ingress service, get it by command below and change it in hosts by your
+34.143.169.103 is IP of nginx ingress service, get it by command below and change it in hosts by your
 
 ```bash
 kubectl get svc -n nginx-system
@@ -354,3 +370,24 @@ kubectl get secrets --namespace=logging elasticsearch-master-credentials -ojsonp
 
 ![image alt text](<images/kibana-web-stream.png>)
 
+
+# DATA PROCESSING
+## Batch Processing
+
+### Source Systems
+#### Postgresql
+
+### Storage:
+#### MinIO
+#### Trino
+#### Hive
+
+### Pipeline Orchestration: 
+#### Airflow on GKE
+#### Schedule Job Script
+
+
+## Stream Processing
+### Debezium
+### Kafka
+### Flink

@@ -1,10 +1,25 @@
 # jobs/common/utils.py
+import os
+
 import yaml
 from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 
-with open("configs/config.yml") as f:
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # /job/jobs
+CONFIG_PATH = os.path.join(BASE_DIR, "configs", "config.yml")
+with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
+
+JARS_DIR = os.path.join(os.path.dirname(BASE_DIR), "jars")  # /job/jars
+
+jars = [
+    os.path.join(JARS_DIR, "postgresql-42.6.0.jar"),
+    os.path.join(JARS_DIR, "deequ-2.0.3-spark-3.3.jar"),
+    os.path.join(JARS_DIR, "hadoop-aws-3.3.2.jar"),
+    os.path.join(JARS_DIR, "aws-java-sdk-bundle-1.11.1026.jar"),
+]
+
+jars_str = ",".join(jars)
 
 
 def get_spark(app_name: str):
@@ -20,10 +35,7 @@ def get_spark(app_name: str):
             "spark.sql.catalog.spark_catalog",
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
-        .config(
-            "spark.jars",
-            "../jars/postgresql-42.6.0.jar,../jars/deequ-2.0.3-spark-3.3.jar,../jars/hadoop-aws-3.3.2.jar,../jars/aws-java-sdk-bundle-1.11.1026.jar",
-        )
+        .config("spark.jars", jars_str)
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)
         .config("spark.hadoop.fs.s3a.access.key", access_key)

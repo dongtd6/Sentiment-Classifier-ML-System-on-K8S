@@ -1,11 +1,14 @@
 # jobs/transforms/batch_prediction.py
 import math
+import os
 
 import pyspark.sql.functions as F
 import requests
 import yaml
 
-with open("configs/config.yml") as f:
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # /job/jobs
+CONFIG_PATH = os.path.join(BASE_DIR, "configs", "config.yml")
+with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 
 

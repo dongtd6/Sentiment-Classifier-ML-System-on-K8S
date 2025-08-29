@@ -24,4 +24,5 @@ predict:
   # clean_path: "s3a://tsc-bucket/clean_reviews"
   # curated_path: "s3a://tsc-bucket/curated_reviews"
   # analytics_path: "s3a://tsc-bucket/analytics"
-  
+metastore:
+  host: "thrift://hive-metastore-svc.storage.svc.cluster.local:9083"  #thrift://metastore:9083"

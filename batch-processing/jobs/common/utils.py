@@ -26,15 +26,21 @@ def get_spark(app_name: str):
     endpoint = cfg["s3"]["endpoint"]
     access_key = cfg["s3"]["access_key"]
     secret_key = cfg["s3"]["secret_key"]
+    metastore_host = cfg["metastore"]["host"]
     builder = (
         SparkSession.builder.master("local[*]")
         .appName(app_name)
         .config("spark.ui.port", "4042")
+        # Delta config
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog",
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
+        # Hive Metastore config
+        .config("spark.sql.catalogImplementation", "hive")
+        .config("spark.hadoop.hive.metastore.uris", metastore_host)
+        # S3 config
         .config("spark.jars", jars_str)
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", endpoint)

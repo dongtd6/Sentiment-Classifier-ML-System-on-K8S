@@ -372,15 +372,57 @@ kubectl get secrets --namespace=logging elasticsearch-master-credentials -ojsonp
 
 
 # DATA PROCESSING
+
 ## Batch Processing
 
 ### Source Systems
+
 #### Postgresql
+- Install Postgresql
+```bash
+helm upgrade --install postgresql ./helm-charts/postgresql -f ./helm-charts/postgresql/auth-values.yaml --namespace storage --create-namespace
+```
 
 ### Storage:
 #### MinIO
-#### Trino
-#### Hive
+- Install MinIO
+```bash
+helm upgrade --install minio-operator ./helm-charts/minio-operator --n storage 
+```bash
+helm upgrade --install minio-tenant ./helm-charts/minio-tenant  -f ./helm-charts/minio-tenant/override-values.yaml -n storage
+```
+#### Trino & Hive Metastore
+
+- Create minio secret for Hive Metastore
+```bash
+kubectl create secret generic minio-credentials \
+  --from-literal=access-key='minio' \
+  --from-literal=secret-key='minio123' \
+  -n storage
+```
+
+- Run SQL Command to creat Database
+```sql
+CREATE DATABASE hive;
+CREATE DATABASE crm_db;
+```
+- Install Hive Metastore & Trino
+```bash
+helm upgrade --install olap ./helm-charts/olap -n storage
+```
+
+#### Initialize data
+
+- Forward port
+```bash
+kubectl port-forward svc/minio-tenant-hl 9000:9000 -n storage
+kubectl port-forward svc/postgresql 5432:5432 -n storage
+```
+- Init data
+```bash
+cd ./helm-charts/postgresql/initdata && python inputdata.py
+```
+
 
 ### Pipeline Orchestration: 
 #### Airflow on GKE

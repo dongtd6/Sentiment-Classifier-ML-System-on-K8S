@@ -49,7 +49,7 @@ def get_spark(app_name: str):
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")  # Disable SSL
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
     )
-    spark = configure_spark_with_delta_pip(builder).getOrCreate()
+    spark = configure_spark_with_delta_pip(builder).enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
     return spark
     # .config("spark.hadoop.fs.s3a.fast.upload", "true")

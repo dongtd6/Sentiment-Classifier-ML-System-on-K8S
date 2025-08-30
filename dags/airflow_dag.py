@@ -23,6 +23,7 @@ with DAG(
         namespace="orchestration",  # namespace of airflow worker on k8s
         image="dongtd6/airflow-job-scripts:latest",  # image you built
         cmds=["python", "jobs/bronze_job.py"],  # command to run in the container
+        image_pull_policy="Always",
         is_delete_operator_pod=True,
         get_logs=True,
     )

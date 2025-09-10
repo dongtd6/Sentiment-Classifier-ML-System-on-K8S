@@ -26,6 +26,7 @@ def get_spark(app_name: str):
     endpoint = cfg["s3"]["endpoint"]
     access_key = cfg["s3"]["access_key"]
     secret_key = cfg["s3"]["secret_key"]
+    bucket = cfg["s3"]["bucket"]
     metastore_host = cfg["metastore"]["host"]
     builder = (
         SparkSession.builder.master("local[*]")
@@ -40,6 +41,10 @@ def get_spark(app_name: str):
         # Hive Metastore config
         .config("spark.sql.catalogImplementation", "hive")
         .config("spark.hadoop.hive.metastore.uris", metastore_host)
+        .config("spark.sql.warehouse.dir", f"s3a://{bucket}/warehouse")
+        .config(
+            "spark.hadoop.hive.metastore.warehouse.dir", f"s3a://{bucket}/warehouse"
+        )
         # S3 config
         .config("spark.jars", jars_str)
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")

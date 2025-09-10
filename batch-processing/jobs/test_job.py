@@ -9,3 +9,7 @@ if __name__ == "__main__":
     spark.sql("SHOW DATABASES").show()
     spark.sql("CREATE DATABASE IF NOT EXISTS mlops_test")
     spark.sql("SHOW DATABASES").show()
+
+    df = spark.read.format("delta").load("s3a://tsc-bucket/bronze/raw_reviews")
+    df.show()
+    print(spark._jvm.io.delta.__version__)

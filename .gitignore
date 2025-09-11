@@ -1,7 +1,7 @@
 # Local .terraform directories
 .terraform/
 
-batch-processing/jars/
+dockerfile/batch-processing/jars/
 
 # .tfstate files
 *.tfstate

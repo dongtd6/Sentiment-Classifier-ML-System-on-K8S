@@ -1,5 +1,0 @@
-from pyspark.sql.functions import col, current_date, date_sub, to_date
-
-def filter_yesterday(ddataframef):
-    yesterday = date_sub(current_date(), 1)
-    return dataframe.where(to_date(col("created_at")) == yesterday)

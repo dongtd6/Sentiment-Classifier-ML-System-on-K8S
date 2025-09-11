@@ -1,0 +1,223 @@
+{{- with .Values.tenant }}
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  ## Optionally pass labels to be applied to the statefulset pods
+  labels:
+    app: minio
+  {{- if dig "metrics" "enabled" false . }}
+  ## Annotations for MinIO Tenant Pods
+  annotations:
+    prometheus.io/path: /minio/v2/metrics/cluster
+    prometheus.io/port: {{ dig "metrics" "port" 9000 . | quote }}
+    prometheus.io/scrape: "true"
+    prometheus.io/scheme: {{ dig "metrics" "protocol" "http" . | quote }}
+  {{- end }}
+{{- if dig "scheduler" "name" "" . }}
+scheduler:
+  name: {{ dig "scheduler" "name" "" . }}
+{{- end }}
+spec:
+  image: "{{ .image.repository }}:{{ .image.digest | default .image.tag }}"
+  imagePullPolicy: {{ dig "image" "pullPolicy" "IfNotPresent" . }}
+  {{- if dig "imagePullSecret" "name" "" . }}
+  imagePullSecret:
+    name: {{ dig "imagePullSecret" "name" "" . }}
+  {{- end }}
+  {{- with (dig "initContainers" (list) .) }}
+  initContainers: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "sideCars" (dict) .) }}
+  sideCars: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ## Secret with default environment variable configurations
+  configuration:
+    name: {{ .configSecret.name }}
+  {{- if hasKey . "poolsMetadata" }}
+  poolsMetadata: {{- if eq (len .poolsMetadata) 0 }} {} {{- end }}
+  {{- with (dig "poolsMetadata" (dict) .) }}
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  pools:
+    {{- range .pools }}
+    - servers: {{ .servers | default 4 }}
+      name: {{ .name | default "" }}
+      volumesPerServer: {{ .volumesPerServer | default 4 }}
+      {{- if .runtimeClassName }}
+      runtimeClassName: {{ .runtimeClassName }}
+      {{- end }}
+      {{- if .terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .terminationGracePeriodSeconds | int }}
+      {{- end }}
+      volumeClaimTemplate:
+        metadata:
+          name: data
+          {{- with .storageAnnotations }}
+          annotations: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .storageLabels }}
+          labels: {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- if .storageClassName }}
+          storageClassName: {{ .storageClassName }}
+          {{- end }}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ .size | default "10Gi" }}
+      {{- with .annotations }}
+      annotations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .labels }}
+      labels: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .resources }}
+      resources: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .securityContext }}
+      securityContext: {{- toYaml .securityContext | nindent 8 }}
+      {{- end }}
+      {{- if .containerSecurityContext }}
+      containerSecurityContext: {{- toYaml .containerSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- with .topologySpreadConstraints }}
+      topologySpreadConstraints: {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+  mountPath: {{ dig "mountPath" "/export" . }}
+  subPath: {{ dig "subPath" "/data" . }}
+  {{- with (dig "certificate" "externalCaCertSecret" (list) .) }}
+  externalCaCertSecret: {{- toYaml . | nindent 6 }}
+  {{- end }}
+  {{- with (dig "certificate" "externalCertSecret" (list) .) }}
+  externalCertSecret: {{- toYaml . | nindent 6 }}
+  {{- end }}
+  requestAutoCert: {{ dig "certificate" "requestAutoCert" false . }}
+  {{- if ((.certificate).certExpiryAlertThreshold) }}
+  certExpiryAlertThreshold: {{ ((.certificate).certExpiryAlertThreshold) }}
+  {{- end }}
+  {{- if dig "s3" "bucketDNS" false . }}
+    {{- fail "Value 'tenant.s3.bucketDNS' is deprecated since Operator v4.3.2, use 'tenant.features.bucketDNS' instead" }}
+  {{- end }}
+  features:
+    bucketDNS: {{ dig "features" "bucketDNS" false . }}
+    {{- with (dig "features" "domains" (dict) .) }}
+    domains: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    enableSFTP: {{ dig "features" "enableSFTP" false . }}
+  {{- with (dig "buckets" (list) .) }}
+  buckets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "users" (list) .) }}
+  users: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "certificate" "certConfig" (dict) .) }}
+  certConfig: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  podManagementPolicy: {{ dig "podManagementPolicy" "Parallel" . }}
+  {{- with (dig "readiness" (dict) .) }}
+  readiness: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "liveness" (dict) .) }}
+  liveness: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "startup" (dict) .) }}
+  startup: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "lifecycle" (dict) .) }}
+  lifecycle: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "exposeServices" (dict) .) }}
+  exposeServices: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if dig "serviceAccountName" "" . }}
+  serviceAccountName: {{ dig "serviceAccountName" "" . }}
+  {{- end }}
+  prometheusOperator: {{ dig "prometheusOperator" "false" . }}
+  {{- with (dig "logging" (dict) .) }}
+  logging: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "serviceMetadata" (dict) .) }}
+  serviceMetadata: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "env" (list) .) }}
+  env: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if dig "priorityClassName" "" . }}
+  priorityClassName: {{ dig "priorityClassName" "" . }}
+  {{- end }}
+  {{- with (dig "additionalVolumes" (list) .) }}
+  additionalVolumes: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "additionalVolumeMounts" (list) .) }}
+  additionalVolumeMounts: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if dig "kes" "configuration" false . }}
+  kes:
+    image: "{{ .kes.image.repository }}:{{ .kes.image.digest | default .kes.image.tag }}"
+    {{- with (dig "kes" "env" (list) .) }}
+    env: {{- toYaml . | nindent 4 }}
+    {{- end }}
+    replicas: {{ .kes.replicas | int }}
+    kesSecret:
+      name: "kes-configuration"
+    imagePullPolicy: {{ .kes.imagePullPolicy | quote }}
+    {{- with (dig "kes" "externalCertSecret" (dict) .) }}
+    externalCertSecret: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with (dig "kes" "clientCertSecret" (dict) .) }}
+    clientCertSecret: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    ## Key name to be created on the KMS, default is "my-minio-key"
+    keyName: {{ .kes.keyName | quote }}
+    {{- with (dig "kes" "resources" (dict) .) | default (dig "resources" (dict) .)}}
+    resources: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with (dig "kes" "nodeSelector" (dict) .) | default (dig "nodeSelector" (dict) .) }}
+    nodeSelector: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    affinity:
+      nodeAffinity: {{- (dig "kes" "affinity" "nodeAffinity" (dict) .) | toYaml | nindent 8 }}
+      podAffinity: {{- (dig "kes" "affinity" "podAffinity" (dict) .) | toYaml | nindent 8 }}
+      podAntiAffinity: {{- (dig "kes" "affinity" "podAntiAffinity" (dict) .) | toYaml | nindent 8 }}
+    {{- with (dig "kes" "tolerations" (list) .) }}
+    tolerations: {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with (dig "kes" "annotations" (dict) .) | default (dig "annotations" (dict) .) }}
+    annotations: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with (dig "kes" "labels" (dict) .) | default (dig "labels" (dict) .) }}
+    labels: {{- toYaml . | nindent 6 }}
+    {{- end }}
+    serviceAccountName: {{ .kes.serviceAccountName | quote }}
+    {{- if hasKey .kes "securityContext" }}
+    securityContext: {{- if eq (len .kes.securityContext) 0 }} {} {{- end }}
+    {{- with (dig "kes" "securityContext" (dict) .) }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    {{- if hasKey .kes "containerSecurityContext" }}
+    containerSecurityContext: {{- if eq (len .kes.containerSecurityContext) 0 }} { } {{- end }}
+      {{- with (dig "kes" "containerSecurityContext" (dict) .) }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  {{- with (dig "sideCars" (dict) .) }}
+  sideCars: {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

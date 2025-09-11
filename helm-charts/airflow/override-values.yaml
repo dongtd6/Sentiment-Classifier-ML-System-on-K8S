@@ -1,0 +1,23 @@
+dags:
+  gitSync:
+    enabled: true
+    repo: https://github.com/dongtd6/Sentiment-Classifier-ML-System-on-K8S.git
+    branch: readme
+    subPath: "dags"
+    # sshKeySecret: airflow-ssh-secret
+
+# extraSecrets:
+#   airflow-ssh-secret:
+#     data: |
+#       gitSshKey: '<base64-converted-ssh-private-key>'
+airflow:
+  extraPipPackages:
+    - apache-airflow-providers-cncf-kubernetes
+    #- apache-airflow-providers-apache-spark
+# images:
+#   airflow:
+#     repository: dongtd6/airflow-spark
+#     tag: latest
+#     pullPolicy: Always
+
+# useDefaultImage: false

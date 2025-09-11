@@ -14,7 +14,7 @@ This ensures a robust, scalable, and fully observable AI system.
 
 ## Overall System Architecture
 
-![image alt text](<images/text-sentiment-classifier.png>)
+![image alt text](<images/text-sentiment-classifier-2.png>)
 
 # Table of Contents
 [Overall System Architecture](#overall-system-architecture)
@@ -259,7 +259,7 @@ kubectl get svc -n nginx-system
 #### Apply ingress configs
 
 ```bash
-kubectl apply -f helm-charts/ingress-configs
+kubectl apply -f helm-charts/ingress
 ```
 
 
@@ -374,6 +374,13 @@ kubectl get secrets --namespace=logging elasticsearch-master-credentials -ojsonp
 [Request edit host](#edit-host-on-your-computer-to-access-service-by-domain)
 
 ## Batch Processing
+
+- Apply ingress
+
+```bash
+k create namespace storage &&
+kubectl apply -f ./helm-charts/ingress 
+```
 
 ### Source Systems
 
@@ -509,7 +516,7 @@ INSERT INTO product_reviews (review_id, review, created_at) VALUES ('test-123', 
 INSERT INTO product_reviews (review_id, created_at, updated_at, product_id, user_id, review, source) VALUES ('13546f11-1070-1d1b-a080-d6b901062ff9',CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,'PRD368','USR368','Sản phẩm dùng không được', 'ZALO');
 
 ```
-![image alt text](<images/postgresql-config.png
+![image alt text](<images/postgresql-config.png>)
 
 - Restart Postgresql
 ```bash

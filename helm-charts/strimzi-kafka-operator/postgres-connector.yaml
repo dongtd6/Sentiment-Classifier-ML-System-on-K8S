@@ -1,0 +1,29 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: postgres-connector
+  namespace: infrastructure
+  labels:
+    strimzi.io/cluster: debezium-connect-cluster   # <== your Kafka Connect cluster name
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector #
+  tasksMax: 1
+  config:
+    plugin.name: pgoutput # <== must be pgoutput for Postgres 10+
+
+    database.hostname: postgresql.storage.svc.cluster.local # <== your Postgres hostname
+    database.port: "5432" 
+    database.user: pgadmin
+    database.password: pw123
+    database.dbname: crm_db
+
+    table.include.list: public.product_reviews
+    publication.name: debezium
+    slot.name: debezium_slot
+
+    topic.prefix: cdc          # <== prefix for Kafka topics
+
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: "false" # <== set to false to disable schema in the message
+    value.converter.schemas.enable: "false" #@ <== set to false to disable schema in the message

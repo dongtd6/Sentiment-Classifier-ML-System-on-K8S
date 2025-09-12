@@ -456,6 +456,7 @@ helm upgrade --install airflow ./helm-charts/airflow -f ./helm-charts/airflow/ov
 ```
 - Access airflow.tsc.vn with user name:admin and password: admin (in ./helm-charts/airflow/values.yaml > webserver/defaultUser/username + password)
 <div style="text-align: center;"> <img src="images/airflow-homepage.png" style="width: 888px; height: auto;"></div>
+
 #### Schedule Job Script
 
 - Python file ".dags/airflow_dag.py" is sync with Airflow over gitSync (config in ./helm-charts/airflow/override-values.yaml)

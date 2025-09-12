@@ -1,0 +1,9 @@
+# .gitattributes
+
+# Bỏ qua diff cho file nhị phân
+*.jar     binary
+*.zip     binary
+# *.png     binary
+# *.jpg     binary
+# *.pdf     binary
+# *.mp4     binary

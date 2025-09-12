@@ -43,7 +43,9 @@ This ensures a robust, scalable, and fully observable AI system.
 ├── model                     - Directory for model files
 ├── tests                     - Pytest code 
 ├── notebooks                 - Notebook to build model
-├── data                      - Data to build model
+├── config                    - Config file for chart deloy
+├── dockerfile                - Dockerfile for build custom image
+├── dags                      - Directory for image files
 ├── Jenkinsfile               - Jenkins pipeline script to describe the CI/CD process
 ├── docker-compose.yaml       - Docker Compose configuration file
 ├── Dockerfile                - Dockerfile for building the image

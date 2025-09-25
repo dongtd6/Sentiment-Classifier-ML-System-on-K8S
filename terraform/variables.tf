@@ -2,7 +2,7 @@
 // which can be accessed by var.project_id
 variable "project_id" {
   description = "The project ID to host the cluster in"
-  default     = "dongtd2"
+  default     = "dongtd3"
 }
 
 variable "zone" {
@@ -22,12 +22,12 @@ variable "default_disk_size" {
 
 variable "node_count" {
   description = "node_count"
-  default     = "3"
+  default     = "2"
 }
 
 variable "initial_node_count" {
   description = "initial_node_count"
-  default     = "3"
+  default     = "2"
 }
 
 variable "machine_type" {

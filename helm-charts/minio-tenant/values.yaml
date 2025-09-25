@@ -188,7 +188,7 @@ tenant:
       # If no worker nodes can meet the specified requests, the Operator may fail to deploy.
       resources: 
         requests:
-          cpu: 500m
+          cpu: 200m #500m
           memory: 512Mi
         limits:
           cpu: 500m

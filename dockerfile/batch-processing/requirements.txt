@@ -7,3 +7,6 @@ pyspark==3.4.2
 delta-spark==2.4.0
 pyyaml
 requests
+
+#uv venv .venv --python=3.8
+#uv pip install -r requirements.txt

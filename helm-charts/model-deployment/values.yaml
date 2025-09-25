@@ -1,5 +1,5 @@
 image:
-  repository: dongtd6/text-sentiment-classifier
+  repository: dongtd6/text-sentiment-classifier:39
   tag: "latest"
   pullPolicy: Always
   namspace: model-serving

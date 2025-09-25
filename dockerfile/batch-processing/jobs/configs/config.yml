@@ -7,8 +7,8 @@ postgres:
   table: "product_reviews"
 
 s3:
-  endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
-  #endpoint: "http://localhost:9000"
+  #endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
+  endpoint: "http://localhost:9000"
   access_key: minio
   secret_key: minio123
   bucket: tsc-bucket
@@ -17,5 +17,5 @@ predict:
   api_url: "http://tsc.model-serving.svc.cluster.local:30000/predict_batch"
   batch_size: 100
 metastore:
-  host: "thrift://hive-metastore.storage.svc.cluster.local:9083"
-  #host: "thrift://localhost:9083"  
+  #ost: "thrift://hive-metastore.storage.svc.cluster.local:9083"
+  host: "thrift://localhost:9083"  

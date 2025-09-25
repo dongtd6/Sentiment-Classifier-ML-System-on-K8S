@@ -4,6 +4,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 
+image_name = "dongtd6/airflow-job-scripts:v1.39"
 default_args = {
     "owner": "airflow",
     "start_date": datetime(2025, 1, 1),
@@ -21,7 +22,7 @@ with DAG(
         task_id="bronze_job",
         name="bronze-job",
         namespace="orchestration",  # namespace of airflow worker on k8s
-        image="dongtd6/airflow-job-scripts:latest",  # image you built
+        image=image_name,  # image you built
         cmds=["python", "jobs/bronze_job.py"],  # command to run in the container
         image_pull_policy="Always",
         is_delete_operator_pod=True,
@@ -32,7 +33,7 @@ with DAG(
         task_id="silver_job",
         name="silver-job",
         namespace="orchestration",
-        image="dongtd6/airflow-job-scripts:latest",
+        image=image_name,
         cmds=["python", "jobs/silver_job.py"],
         is_delete_operator_pod=True,
         get_logs=True,
@@ -42,7 +43,7 @@ with DAG(
         task_id="gold_job",
         name="gold_job",
         namespace="orchestration",
-        image="dongtd6/airflow-job-scripts:latest",
+        image=image_name,
         cmds=["python", "jobs/gold_job.py"],
         is_delete_operator_pod=True,
         get_logs=True,

@@ -1,3 +1,54 @@
+# override-values.yaml Override values for MinIO Tenant Helm chart
 tenant:
   certificate:
     requestAutoCert: false
+#   pools:
+#     - name: pool-0
+#       servers: 2
+#       resources: 
+#         requests:
+#           cpu: 200m
+#           memory: 512Mi
+#         limits:
+#           cpu: 200m
+#           memory: 1536Mi
+
+
+# tenant:
+#   pools:
+#     - name: pool-0
+#       servers: 2
+#       volumeClaimTemplate:
+#         metadata:
+#           name: data
+#         spec:
+#           accessModes: ["ReadWriteOnce"]
+#           resources:
+#             requests:
+#               storage: 10Gi
+#       resources:
+#         requests:
+#           cpu: 200m
+#           memory: 512Mi
+#         limits:
+#           cpu: 200m
+#           memory: 1536Mi
+
+
+# override-values.yaml - Override values for MinIO Tenant Helm chart
+# tenant:
+#   certificate:
+#     requestAutoCert: false  # Giữ nguyên như cũ
+#   pools:
+#     - name: pool-0
+#       servers: 2  # Default: 4 (thay 2 nếu bạn muốn ít hơn, nhưng khuyến nghị >=4 cho distributed)
+#       volumesPerServer: 4  # Bắt buộc: Số volume per pod (default)
+#       size: 10Gi  # Bắt buộc: Dung lượng per volume (thay đổi theo nhu cầu)
+#       storageClassName: standard  # Thay bằng storage class của cluster bạn (kiểm tra: kubectl get sc)
+#       resources:  # Override resources ở đây
+#         requests:
+#           cpu: 200m  # Hạ từ default ~500m
+#           memory: 512Mi
+#         limits:
+#           cpu: 200m
+#           memory: 1536Mi  # Giữ nguyên hoặc điều chỉnh

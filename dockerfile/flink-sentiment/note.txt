@@ -2,7 +2,7 @@
 PROJECT_ID=dongtd2
 REGION=asia-southeast1    
 IMAGE=flink-sentiment
-TAG=v1.38
+TAG=v1.39
 
 # Login registry
 gcloud auth configure-docker ${REGION}-docker.pkg.dev

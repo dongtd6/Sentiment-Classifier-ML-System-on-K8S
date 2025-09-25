@@ -1,7 +1,7 @@
 # Local .terraform directories
 .terraform/
 
-dockerfile/batch-processing/jars/
+dockerfile/batch-processing/jars/aws-java-sdk-bundle-1.11.1026.jar
 
 # .tfstate files
 *.tfstate

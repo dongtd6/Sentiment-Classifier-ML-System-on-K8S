@@ -108,6 +108,7 @@ cd ..
 ```
 ### Deploy NGINX-ingress
 <div style="text-align: center;"> <img src="images/nginx-ingress-install.png" style="width: 888px; height: auto;"></div>
+
 ```shell
 kubectl create ns nginx-system
 helm upgrade --install nginx-ingress ./helm-charts/nginx-ingress -n nginx-system
@@ -115,11 +116,13 @@ helm upgrade --install nginx-ingress ./helm-charts/nginx-ingress -n nginx-system
 ### Update host
 - Replace the External IP above in `spec/rules/host` in file `helm-charts/model-deployment/templates/nginx-ingress.yaml`
 <div style="text-align: center;"> <img src="images/nginx-ingress-external-ip.png" style="width: 888px; height: auto;"></div>
+
 ```shell
 kubectl get svc -n nginx-system
 ```
 ### Deploy Model
 <div style="text-align: center;"> <img src="images/nginx-update-config.png" style="width: 888px; height: auto;"></div>
+
 ```shell
 helm upgrade --install tsc ./helm-charts/model-deployment/ --namespace model-serving --create-namespace
 ```
@@ -145,6 +148,7 @@ gcloud compute instances list --format="table(name,zone,networkInterfaces[0].acc
 
 ### SSH to VM and get Jenkins password
 <div style="text-align: center;"> <img src="images/jenkins-password-docker.png" style="width: 888px; height: auto;"></div>
+
 ```bash
 ssh your-jenkins-vm-ip
 sudo docker exec -it jenkins sh
@@ -164,6 +168,7 @@ cat /var/jenkins_home/secrets/initialAdminPassword
 ### Intall plugin for Jenkins
 Plugin for Jenkins: Docker, Docker Pipeline, Kubernetes plugin
 <div style="text-align: center;"> <img src="images/jenkins-docker-plugin.png" style="width: 888px; height: auto;"></div>
+
 ### Config Jenkins connect to Git Hub
  https://github.com/settings/tokens
 <div style="text-align: center;"> <img src="images/github-generate-new-token.png" style="width: 888px; height: auto;"></div>
@@ -172,16 +177,19 @@ Plugin for Jenkins: Docker, Docker Pipeline, Kubernetes plugin
 
  http://external-ip-of-your-instance:8081/manage/credentials/store/system/domain/_/newCredentials
  <div style="text-align: center;"> <img src="images/jenkins-create-github-credentials.png" style="width: 888px; height: auto;"></div>
+
 ### Config Jenkins connect to Docker Hub
  https://app.docker.com/settings/personal-access-tokens
 <div style="text-align: center;"> <img src="images/docker-hub-generate-token.png" style="width: 888px; height: auto;"></div>
 <div style="text-align: center;"> <img src="images/jenkins-create-dockerhub-credentials.png" style="width: 888px; height: auto;"></div>
+
 ### Config Github Webhook to Jenkins
 <div style="text-align: center;"> <img src="images/github-webhook-seting.png" style="width: 888px; height: auto;"></div>  
  http://external-ip-of-your-instance:8081/github-webhook/
 
 ### Install kubectl CLI on your computer
 <div style="text-align: center;"> <img src="images/kubectx-kubens-install.png" style="width: 888px; height: auto;"></div>
+
 ```bash
 curl -LO https://dl.k8s.io/release/v1.33.0/bin/linux/amd64/kubectl
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
@@ -191,24 +199,34 @@ sudo ln -s /opt/kubectx/kubectx /usr/local/bin/kubectx
 sudo ln -s /opt/kubectx/kubens /usr/local/bin/kubens
 ```
 ### Connect to GKE Cluster
+
 <div style="text-align: center;"> <img src="images/gke-cluster-commandline-access.png" style="width: 888px; height: auto;"></div>
 <div style="text-align: center;"> <img src="images/gke-cluster-commandline-access-2.png" style="width: 888px; height: auto;"></div>
 
 ### Get Kubernetes URL
+```bash
 kubectl cluster-info | grep 'Kubernetes control plane' | awk '{print $NF}'
+```
 ### Get CA Certificate
+```bash
 kubectl get secret jenkins-sa-token -n jenkins -o jsonpath='{.data.ca\.crt}' 
+```
 ### Get token
+```bash
 kubectl get secret jenkins-sa-token -n jenkins -o jsonpath='{.data.token}' | base64 -d
+```
 ### Add new Cloud on Jenkins
 <div style="text-align: center;"> <img src="images/jenkins-cloud-item-gke-cluster.png" style="width: 888px; height: auto;"></div>
 <div style="text-align: center;"> <img src="images/jenkins-cloud-item-credential.png" style="width: 888px; height: auto;"></div>
 <div style="text-align: center;"> <img src="images/jenkins-cloud-item-save.png" style="width: 888px; height: auto;"></div>
+
 ### Add new Item on Jenkins
 <div style="text-align: center;"> <img src="images/jenkins-create-new-item.png" style="width: 888px; height: auto;"></div>
 <div style="text-align: center;"> <img src="images/jenkins-create-new-item-2.png" style="width: 888px; height: auto;"></div>
+
 ### Push a commit to Github
 <div style="text-align: center;"> <img src="images/github-push-a-commit.png" style="width: 888px; height: auto;"></div>
+
 ### View Build Executor Status on Jenkins
 <div style="text-align: center;"> <img src="images/jenkins-executor-builder-status.png" style="width: 888px; height: auto;"></div>
 <div style="text-align: center;"> <img src="images/jenkins-console-output.png" style="width: 888px; height: auto;"></div>
@@ -236,23 +254,27 @@ kubectl create ns monitoring
 sudo nano /etc/hosts
 ```
 ```
-34.143.169.103 api.tsc.vn
-34.143.169.103 grafana.tsc.vn
-34.143.169.103 prometheus.tsc.vn
-34.143.169.103 jaeger.tsc.vn
-34.143.169.103 kibana.tsc.vn
+34.142.236.205 api.tsc.vn
+34.142.236.205 grafana.tsc.vn
+34.142.236.205 prometheus.tsc.vn
+34.142.236.205 jaeger.tsc.vn
+34.142.236.205 kibana.tsc.vn
 
-34.143.169.103 airflow.tsc.vn
-34.143.169.103 minio.tsc.vn
-34.143.169.103 postgresql.tsc.vn
-34.143.169.103 trino.tsc.vn
+34.142.236.205 airflow.tsc.vn
+34.142.236.205 api.minio.tsc.vn
+34.142.236.205 minio.tsc.vn
+34.142.236.205 trino.tsc.vn
+34.142.236.205 debezium.tsc.vn
 
-34.143.169.103 kafka.tsc.vn
-34.143.169.103 debezium.tsc.vn
-34.143.169.103 flink.tsc.vn
+34.142.236.205 kafka.tsc.vn
+34.142.236.205 debezium.tsc.vn
+34.142.236.205 flink.tsc.vn
+
+34.142.236.205 mlflow.tsc.vn
+34.142.236.205 kubeflow.tsc.vn
 ```
 
-34.143.169.103 is IP of nginx ingress service, get it by command below and change it in hosts by your
+34.142.236.205 is IP of nginx ingress service, get it by command below and change it in hosts by your
 
 ```bash
 kubectl get svc -n nginx-system
@@ -308,7 +330,8 @@ with user admin and password is admin
 Install Jaeger
 
 <div style="text-align: center;"> <img src="images/jaeger-tracing-helm.png" style="width: 888px; height: auto;"></div>
-```
+
+```bash
 kubectl create ns tracing
 cd ./helm-charts/jaeger
 helm dependency build
@@ -356,6 +379,7 @@ helm upgrade --install kibana elastic/kibana -f ./helm-charts/elk/values-kibana.
 
 Kibana can be accessed via `http://kibana.tsc.vn` and login with password in values-elasticsearch.yaml 
 or get by this command:
+
 ```bash
 kubectl get secrets --namespace=logging elasticsearch-master-credentials -ojsonpath='{.data.password}' | base64 -d
 ```
@@ -395,7 +419,7 @@ helm upgrade --install postgresql ./helm-charts/postgresql -f ./helm-charts/post
 #### MinIO
 - Install MinIO
 ```bash
-helm upgrade --install minio-operator ./helm-charts/minio-operator --n storage 
+helm upgrade --install minio-operator ./helm-charts/minio-operator -n storage 
 
 ```
 ```bash
@@ -410,6 +434,7 @@ helm upgrade --install minio-tenant ./helm-charts/minio-tenant  -f ./helm-charts
 #### Trino & Hive Metastore
 
 - Create minio secret for Hive Metastore access
+
 ```bash
 kubectl create secret generic minio-credentials \
   --from-file=access-key=config/s3/access-key.properties \
@@ -418,6 +443,7 @@ kubectl create secret generic minio-credentials \
 ```
 - Create database for Hive Metastore
 => Access postgresql pod with password in /helm-chart/postgresql/auth-values.yaml (pg123)
+
 ```bash
 kubectl exec -it postgresql-0 -n storage -- psql -U pgadmin -d postgres
 ```
@@ -531,7 +557,7 @@ kubectl exec -it postgresql-0 -n storage -- pg_ctl restart
 ### Kafka
 
 - Install Strimzi Kafka Operator in the `operators` namespace:
-=> use custom image in ./helm-charts/strimzi-kafka-operator/values.yaml > kafkaConnect: image: dongtd6/kafka-connectors-customize:latest
+=> use custom image in ./helm-charts/strimzi-kafka-operator/values.yaml > kafkaConnect: image: dongtd6/kafka-connectors-customize:v1.1
 => image build by ./dockerfile/Dockerfile-kafka-conect
 
 ```bash
@@ -565,4 +591,3 @@ kubectl apply -f ./helm-charts/flink-kubernetes-operator/flink-telegram-job.yaml
 
 - Message will send to Telegram after new review received
 <div style="text-align: center;"> <img src="images/telegram-alert.png" style="width: 888px; height: auto;"></div>
-

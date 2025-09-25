@@ -4,11 +4,11 @@ from common.utils import get_spark
 from pyspark.sql.functions import col, current_date, date_sub, to_date
 
 if __name__ == "__main__":
-
     bucket = "tsc-bucket"
     schema = "bronze"
     table_name = "raw_reviews"
     path = f"s3a://{bucket}/{schema}/{table_name}"
+
     spark = get_spark(f"{schema.capitalize()} Job")
     print(f"Starting {schema.capitalize()} Job...")
 

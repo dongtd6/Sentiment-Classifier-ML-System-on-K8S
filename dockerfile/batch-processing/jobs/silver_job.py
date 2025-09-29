@@ -9,7 +9,7 @@ from pyspark.sql.types import StringType
 from transforms.batch_prediction import batch_predict
 
 
-def extract(silver_path):
+def extract(spark, silver_path, logger):
     logger.info("Extract: 🚀 Reading from Delta table in MinIO...")
     try:
         max_created_at = (
@@ -34,7 +34,7 @@ def extract(silver_path):
     logger.info(f"Total records read: {bronze_dataframe.count()}")
 
 
-def transform(bronze_dataframe):
+def transform(spark, bronze_dataframe, logger):
     logger.info("Tranform data ...")
     bronze_dataframe = bronze_dataframe.withColumn(
         "sentiment", F.lit(None).cast(StringType())
@@ -58,7 +58,7 @@ def transform(bronze_dataframe):
     bronze_dataframe.logger.infoSchema()
     logger.info(f"Total records after cleaning: {bronze_dataframe.count()}")
     logger.info("Update data ...")
-    silver_dataframe = batch_predict(spark, bronze_dataframe)
+    silver_dataframe = batch_predict(spark, bronze_dataframe, logger)
     silver_dataframe.show(6)
     silver_dataframe.logger.infoSchema()
     logger.info(f"Total records after prediction: {silver_dataframe.count()}")
@@ -70,13 +70,16 @@ if __name__ == "__main__":
     table_name = "reviews_with_sentiment"
     silver_path = f"s3a://{bucket}/{schema}/{table_name}"
     spark = get_spark(f"{schema.capitalize()} Job")
+    logger = spark._jvm.org.apache.log4j.LogManager.getLogger(__name__)
     logger.info(f"Starting {schema.capitalize()} Job...")
 
     # Extract
-    bronze_dataframe = extract(silver_path)  # Check max creat at in Silver and extract
+    bronze_dataframe = extract(
+        spark, silver_path, logger
+    )  # Check max creat at in Silver and extract
 
     # Transform
-    silver_dataframe = transform(bronze_dataframe)
+    silver_dataframe = transform(spark, bronze_dataframe, logger)
 
     # Load
     logger.info("Load: 🚀 Writing to Delta table in MinIO ...")

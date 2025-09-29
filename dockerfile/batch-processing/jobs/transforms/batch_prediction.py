@@ -12,7 +12,7 @@ with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 
 
-def batch_predict(spark, dataframe):
+def batch_predict(spark, dataframe, logger):
     """
     dataframe: Spark DataFrame có ít nhất cột 'review' (string)
     return: DataFrame gồm 2 cột [review, sentiment]
@@ -29,9 +29,9 @@ def batch_predict(spark, dataframe):
     )
 
     pending_count = len(rows)
-    print(f"🕒 Số dòng cần predict: {pending_count}")
+    logger.info(f"🕒 Số dòng cần predict: {pending_count}")
     if pending_count == 0:
-        print("✅ Không còn dòng nào cần dự đoán. Kết thúc.")
+        logger.info("✅ Không còn dòng nào cần dự đoán. Kết thúc.")
         return dataframe.withColumn("sentiment", F.lit(None).cast("string"))
 
     total_batches = math.ceil(pending_count / BATCH_SIZE)
@@ -44,23 +44,23 @@ def batch_predict(spark, dataframe):
 
     for idx, chunk in enumerate(chunks(rows, BATCH_SIZE), start=1):
         unique_comments = list(dict.fromkeys(chunk))
-        print(f"📮 Lô {idx}/{total_batches}: gửi {len(unique_comments)} câu ...")
+        logger.info(f"📮 Lô {idx}/{total_batches}: gửi {len(unique_comments)} câu ...")
 
         try:
             resp = requests.post(
                 PREDICT_URL, json={"comments": unique_comments}, timeout=60
             )
             if resp.status_code != 200:
-                print(f"❌ API trả mã {resp.status_code}: {resp.text[:200]}")
+                logger.info(f"❌ API trả mã {resp.status_code}: {resp.text[:200]}")
                 continue
             body = resp.json()
             preds = body.get("predictions", [])
         except Exception as e:
-            print(f"❌ Lỗi khi gọi API: {e}")
+            logger.info(f"❌ Lỗi khi gọi API: {e}")
             continue
 
         if not isinstance(preds, list) or len(preds) == 0:
-            print("⚠️ API không trả về 'predictions' hợp lệ.")
+            logger.info("⚠️ API không trả về 'predictions' hợp lệ.")
             continue
 
         # Append mapping vào all_updates
@@ -73,7 +73,7 @@ def batch_predict(spark, dataframe):
     # Tạo DataFrame kết quả
     if all_updates:
         df_updates = spark.createDataFrame(all_updates, ["review", "sentiment"])
-        print(f"📝 Tổng cộng {df_updates.count()} dòng đã được predict")
+        logger.info(f"📝 Tổng cộng {df_updates.count()} dòng đã được predict")
     else:
         # fallback nếu không có kết quả
         df_updates = spark.createDataFrame([], schema="review string, sentiment string")

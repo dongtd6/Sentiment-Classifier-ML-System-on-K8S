@@ -1,6 +1,7 @@
 # flink_job_telegram.py
 import argparse
 import json
+import logging
 import os
 import sys
 
@@ -19,6 +20,9 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from utils import send_to_telegram
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def main(args):
     print(f"Starting Flink Telegram Notification Job... Python version: {sys.version}")
@@ -33,7 +37,7 @@ def main(args):
     execution_environment.set_parallelism(
         1
     )  # Set parallelism to 1 for ordered processing
-    print("Execution environment initialized")
+    logger.info("Execution environment initialized")
 
     # Kafka configuration
     bootstrap_servers = args.bootstrap.replace(
@@ -68,7 +72,7 @@ def main(args):
         .build()
     )
 
-    print("Kafka source created, starting to process messages...")
+    logger.info("Kafka source created, starting to process messages...")
     try:
         datastream = execution_environment.from_source(
             source, WatermarkStrategy.no_watermarks(), "TelegramSource"
@@ -78,14 +82,14 @@ def main(args):
         raise
 
     # print message from datastream for debugging
-    print("Subscribing to Kafka topic and waiting for messages...")
+    logger.info("Subscribing to Kafka topic and waiting for messages...")
     datastream = datastream.map(
         lambda value: send_to_telegram(value, telegram_bot_token, telegram_chat_id),
         output_type=Types.STRING(),
     ).filter(lambda result: result is not None)
 
     execution_environment.execute("Flink Telegram Notification Job")
-    print("Flink job execution started")
+    logger.info("Flink job execution started")
 
 
 if __name__ == "__main__":
@@ -104,7 +108,7 @@ if __name__ == "__main__":
         default="missing-chat-id",
         help="Telegram Chat ID",
     )  # same
-    print("Parsing arguments...")
+    logger.info("Parsing arguments...")
     args = parser.parse_args()
     print(f"Arguments: {vars(args)}")
     main(args)

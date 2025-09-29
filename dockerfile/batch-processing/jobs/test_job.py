@@ -5,7 +5,8 @@ from pyspark.sql.functions import col, current_date, date_sub, to_date
 
 if __name__ == "__main__":
     spark = get_spark("Test Job")
-    print("Starting Test Job...")
+    logger = spark._jvm.org.apache.log4j.LogManager.getLogger(__name__)
+    logger.info("Starting Test Job...")
     spark.sql("SHOW DATABASES").show()
     spark.sql("CREATE DATABASE IF NOT EXISTS mlops_test")
     spark.sql("SHOW DATABASES").show()

@@ -4,7 +4,7 @@ from common.utils import get_spark
 from pyspark.sql.functions import col, current_date, date_sub, to_date
 
 
-def extract(path):
+def extract(path, spark, logger):
     logger.info("Extracting data from PostgreSQL...")
     try:
         max_created_at = (
@@ -25,6 +25,7 @@ def extract(path):
     dataframe.show(6)
     dataframe.printSchema()
     logger.info(f"Total records extracted: {dataframe.count()}")
+    return dataframe
 
 
 if __name__ == "__main__":
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     logger.info(f"Starting {schema.capitalize()} Job...")
 
     # Extract
-    dataframe = extract(path)
+    dataframe = extract(path, spark, logger)
 
     # Load
     logger.info("Writing to Bronze Delta Lake...")
@@ -48,18 +49,18 @@ if __name__ == "__main__":
     logger.info(f"{schema.capitalize()} job completed successfully.")
 
     # Transform
-    # print("Transforming data...")
+    # logger.info("Transforming data...")
     # yesterday = date_sub(current_date(), 1)
     # transformed_dataframe = dataframe.where(to_date(col("created_at")) == yesterday)
     # transformed_dataframe.show(6)
     # transformed_dataframe.printSchema()
-    # print(f"Total records after filtering: {transformed_dataframe.count()}")
+    # logger.info(f"Total records after filtering: {transformed_dataframe.count()}")
 
     # dataframe.sparkSession.sql("CREATE SCHEMA IF NOT EXISTS bronze")
-    # print(dataframe.collect())
-    # print(dataframe.head(5))
-    # print(dataframe.take(5))
-    # print(dataframe.show(5, truncate=False))
+    # logger.info(dataframe.collect())
+    # logger.info(dataframe.head(5))
+    # logger.info(dataframe.take(5))
+    # logger.info(dataframe.show(5, truncate=False))
     # dataframe.describe().show()
     # dataframe.summary().show()
     # dataframe.select("review_text").show(5, truncate=False)

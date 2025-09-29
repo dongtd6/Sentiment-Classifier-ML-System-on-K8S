@@ -9,6 +9,11 @@ from helpers import load_cfg
 CFG_FILE = "../auth-values.yaml"
 CSV_FILE = "input_data.csv"
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def connect_to_db(auth):
     """Establishes a connection to the PostgreSQL database."""
@@ -20,7 +25,7 @@ def connect_to_db(auth):
             user=auth["username"],
             password=auth["password"],
         )
-        print("Connection to PostgreSQL successful!")
+        logger.info("Connection to PostgreSQL successful!")
         return conn
     except psycopg2.OperationalError as e:
         print(f"Error connecting to database: {e}")
@@ -46,7 +51,7 @@ def create_table(conn):
         with conn.cursor() as cur:
             cur.execute(create_table_query)
             conn.commit()
-            print("Table 'product_reviews' created.")
+            logger.info("Table 'product_reviews' created.")
     except Exception as e:
         print(f"Error creating table: {e}")
         conn.rollback()
@@ -57,7 +62,7 @@ def execute_query(conn, query):
         with conn.cursor() as cur:
             cur.execute(query)
             conn.commit()
-            print("Queey execute successfully.")
+            logger.info("Queey execute successfully.")
     except Exception as e:
         print(f"Error execute query {e}")
         conn.rollback()
@@ -69,7 +74,7 @@ def insert_data_from_csv(conn, csv_file):
         if not os.path.exists(csv_file):
             print(f"Error: CSV file '{csv_file}' not found.")
             return
-        print("CSV file found, proceeding to read data...")
+        logger.info("CSV file found, proceeding to read data...")
         df = pd.read_csv(csv_file)
 
         # Rename columns to match the database schema
@@ -96,7 +101,7 @@ def insert_data_from_csv(conn, csv_file):
             "source",
             "sentiment",
         ]
-        print("Inserting data into 'product_reviews' ...")
+        logger.info("Inserting data into 'product_reviews' ...")
         with conn.cursor() as cur:
             for _, row in df.iterrows():
                 insert_query = f"""
@@ -120,7 +125,7 @@ def main():
     auth = cfg.get("auth")
 
     if not auth:
-        print("Error: 'auth' section not found in config file.")
+        logger.info("Error: 'auth' section not found in config file.")
         return
 
     # 1. Connect to the database
@@ -139,7 +144,7 @@ def main():
     #     # 4. Close the connection
     #     if conn:
     #         conn.close()
-    #         print("Database connection closed.")
+    #         logger.info("Database connection closed.")
 
     query_creat_at = """
     UPDATE product_reviews
@@ -171,7 +176,7 @@ def main():
 
     if conn:
         conn.close()
-        print("Database connection closed.")
+        logger.info("Database connection closed.")
 
 
 if __name__ == "__main__":

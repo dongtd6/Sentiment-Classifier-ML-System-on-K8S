@@ -10,16 +10,22 @@ from pyspark.sql.types import StringType
 
 CSV_FILE = "../data/data.csv"
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def main():
-    print("Starting Init data to Minio Job...")
-    print(f"Reading data from CSV file: {CSV_FILE}")
+
+    logger.info("Starting Init data to Minio Job...")
+    logger.info(f"Reading data from CSV file: {CSV_FILE}")
     spark = get_spark("Init data to Minio Job")
     try:
         if not os.path.exists(CSV_FILE):
-            print(f"Error: CSV file '{CSV_FILE}' not found.")
+            logger.info(f"Error: CSV file '{CSV_FILE}' not found.")
             return
-        print("CSV file found, proceeding to read data...")
+        logger.info("CSV file found, proceeding to read data...")
 
         # Đọc file CSV bằng Spark, không phải pandas
         dataframe = (
@@ -34,10 +40,10 @@ def main():
             "label", "sentiment"
         )
 
-        print("Read csv successfully: ")
+        logger.info("Read csv successfully: ")
         dataframe.printSchema()
         dataframe.show(6)
-        print(f"Total records extracted: {dataframe.count()}")
+        logger.info(f"Total records extracted: {dataframe.count()}")
 
         # Add additional columns
         uuid_udf = udf(lambda: str(uuid.uuid4()), StringType())
@@ -51,13 +57,13 @@ def main():
             .withColumn("source", lit("csv_upload"))
         )
 
-        print("Rich data successfully: ")
+        logger.info("Rich data successfully: ")
         dataframe.printSchema()
         dataframe.show(6)
-        print(f"Total records enriched: {dataframe.count()}")
+        logger.info(f"Total records enriched: {dataframe.count()}")
 
         # Load
-        print("Load: 🚀 Writing to Delta table in MinIO ...")
+        logger.info("Load: 🚀 Writing to Delta table in MinIO ...")
         bucket = "tsc-bucket"
         schema = "silver"
         table_name = "reviews_with_sentiment"
@@ -65,17 +71,17 @@ def main():
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS {schema}")
         write_delta(dataframe, f"{schema}.{table_name}", silver_path, mode="overwrite")
 
-        print("Read minio after write:")
+        logger.info("Read minio after write:")
         silver_dataframe = spark.read.format("delta").load(silver_path)
         silver_dataframe.printSchema()
         silver_dataframe.show(6)
-        print(f"Total records enriched: {silver_dataframe.count()}")
+        logger.info(f"Total records enriched: {silver_dataframe.count()}")
 
         spark.stop()
-        print(f"{schema.capitalize()} job completed successfully.")
+        logger.info(f"{schema.capitalize()} job completed successfully.")
 
     except Exception as e:
-        print(f"Error inserting data: {e}")
+        logger.info(f"Error inserting data: {e}")
 
 
 if __name__ == "__main__":

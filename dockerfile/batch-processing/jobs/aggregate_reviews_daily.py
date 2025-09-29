@@ -38,7 +38,7 @@ if __name__ == "__main__":
     gold_path = f"s3a://tsc-bucket/gold/reviews_summary"
 
     logger = spark._jvm.org.apache.log4j.LogManager.getLogger(__name__)
-    logger.info("Starting Gold Job...")
+    logger.info("Starting Aggregate Reviews Daily Job...")
 
     # Read Bronze and Silver data
     bronze_df = spark.read.format("delta").load(bronze_path)
@@ -54,13 +54,13 @@ if __name__ == "__main__":
     gold_df = transform(bronze_df, silver_df)
 
     # Load
-    logger.info("Writing Gold data to Delta Lake...")
+    logger.info("Load: Writing Gold data to Delta Lake...")
     write_delta(gold_df, "reviews_summary", gold_path, mode="overwrite")
     gold_df.show(6)
     gold_df.printSchema()
     logger.info(f"Total records in Gold: {gold_df.count()}")
     spark.stop()
-    logger.info("Gold Job completed ✅")
+    logger.info("Aggregate Reviews Daily Job completed successfully.")
 
     # # Join Bronze and Silver data on review text
     # joined_df = bronze_df.alias("b").join(

@@ -10,7 +10,7 @@ from transforms.batch_prediction import batch_predict
 
 
 def extract(spark, silver_path, logger):
-    logger.info("Extract: 🚀 Reading from Delta table in MinIO...")
+    logger.info("Extract: Reading from Delta table in MinIO...")
     try:
         max_created_at = (
             spark.read.format("delta")
@@ -35,7 +35,7 @@ def extract(spark, silver_path, logger):
 
 
 def transform(spark, bronze_dataframe, logger):
-    logger.info("Tranform data ...")
+    logger.info("Transform: Add sentiment column and clean data...")
     bronze_dataframe = bronze_dataframe.withColumn(
         "sentiment", F.lit(None).cast(StringType())
     )
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     silver_path = f"s3a://{bucket}/{schema}/{table_name}"
     spark = get_spark(f"{schema.capitalize()} Job")
     logger = spark._jvm.org.apache.log4j.LogManager.getLogger(__name__)
-    logger.info(f"Starting {schema.capitalize()} Job...")
+    logger.info(f"Starting Tranform Review Sentiment Job...")
 
     # Extract
     bronze_dataframe = extract(
@@ -82,13 +82,13 @@ if __name__ == "__main__":
     silver_dataframe = transform(spark, bronze_dataframe, logger)
 
     # Load
-    logger.info("Load: 🚀 Writing to Delta table in MinIO ...")
+    logger.info("Load: Writing to Delta table in MinIO ...")
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {schema}")
     write_delta(
         silver_dataframe, f"{schema}.{table_name}", silver_path, mode="overwrite"
     )
     spark.stop()
-    logger.info(f"{schema.capitalize()} job completed successfully.")
+    logger.info("Tranform Review Sentiment Job completed successfully.")
 
     # dataframe = bronze_dataframe.select("review_id", "product_id", "review_text", "sentiment", "source", "created_at")
     # dataframe.show(6)

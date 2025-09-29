@@ -18,35 +18,35 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    bronze_task = KubernetesPodOperator(
-        task_id="bronze_job",
-        name="bronze-job",
-        namespace="orchestration",  # namespace of airflow worker on k8s
-        image=image_name,  # image you built
-        cmds=["python", "jobs/bronze_job.py"],  # command to run in the container
+    extract_postgres_reviews = KubernetesPodOperator(
+        task_id="extract_postgres_reviews",
+        name="extract-postgres-reviews",
+        namespace="orchestration",
+        image=image_name,
+        cmds=["python", "jobs/extract_postgres_reviews.py"],
         image_pull_policy="Always",
         is_delete_operator_pod=True,
         get_logs=True,
     )
 
-    silver_task = KubernetesPodOperator(
-        task_id="silver_job",
-        name="silver-job",
+    transform_reviews_sentiment = KubernetesPodOperator(
+        task_id="transform_reviews_sentiment",
+        name="transform-reviews-sentiment",
         namespace="orchestration",
         image=image_name,
-        cmds=["python", "jobs/silver_job.py"],
+        cmds=["python", "jobs/transform_reviews_sentiment.py"],
         is_delete_operator_pod=True,
         get_logs=True,
     )
 
-    gold_task = KubernetesPodOperator(
-        task_id="gold_job",
-        name="gold_job",
+    aggregate_reviews_daily = KubernetesPodOperator(
+        task_id="aggregate_reviews_daily",
+        name="aggregate-reviews-daily",
         namespace="orchestration",
         image=image_name,
-        cmds=["python", "jobs/gold_job.py"],
+        cmds=["python", "jobs/aggregate_reviews_daily.py"],
         is_delete_operator_pod=True,
         get_logs=True,
     )
 
-    bronze_task >> silver_task >> gold_task
+    extract_postgres_reviews >> transform_reviews_sentiment >> aggregate_reviews_daily

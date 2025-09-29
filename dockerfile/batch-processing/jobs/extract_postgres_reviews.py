@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     spark = get_spark(f"{schema.capitalize()} Job")
     logger = spark._jvm.org.apache.log4j.LogManager.getLogger(__name__)
-    logger.info(f"Starting {schema.capitalize()} Job...")
+    logger.info("Starting Extract Postgres Reviews Job...")
 
     # Extract
     dataframe = extract(path, spark, logger)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {schema}")
     write_delta(dataframe, f"{schema}.{table_name}", path, mode="overwrite")
     spark.stop()
-    logger.info(f"{schema.capitalize()} job completed successfully.")
+    logger.info("Extract Postgres Reviews Job completed successfully.")
 
     # Transform
     # logger.info("Transforming data...")

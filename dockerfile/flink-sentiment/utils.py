@@ -31,7 +31,7 @@ def process_comment(value, model_url):
         after = data.get("after", {})
         comment = after.get("review", "")
         if not comment:
-            print(f"No review found in data: {value}")
+            logger.info(f"No review found in data: {value}")
             return None
 
         # Call REST API
@@ -39,7 +39,7 @@ def process_comment(value, model_url):
         predicted_sentiment = result.get("predicted_sentiment", "NEUTRAL")
 
         # Debug: Log API result and input
-        print(f"Input review: {comment}, API result: {result}")
+        logger.info(f"Input review: {comment}, API result: {result}")
 
         # Only return messages with NEG sentiment
         if predicted_sentiment == "NEG":
@@ -47,16 +47,16 @@ def process_comment(value, model_url):
             after["sentiment"] = predicted_sentiment
             return json.dumps(after)
         else:
-            print(f"Skipping non-NEG sentiment: {predicted_sentiment}")
+            logger.info(f"Skipping non-NEG sentiment: {predicted_sentiment}")
             return None
     except Exception as e:
-        print(f"Error processing: {e}, value={value}")
+        logger.info(f"Error processing: {e}, value={value}")
         return None
 
 
 def send_to_telegram(value, bot_token, chat_id):
     """Send message to Telegram with full content."""
-    print(f"Preparing to send to Telegram: {value}", file=sys.stderr)
+    logger.info(f"Preparing to send to Telegram: {value}", file=sys.stderr)
     try:
         data = json.loads(value)
 
@@ -74,7 +74,9 @@ def send_to_telegram(value, bot_token, chat_id):
                 dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
                 return dt.strftime("%d/%m/%Y %H:%M:%S")
             except (ValueError, TypeError, OverflowError) as e:
-                print(f"Error parsing timestamp {timestamp}: {e}", file=sys.stderr)
+                logger.info(
+                    f"Error parsing timestamp {timestamp}: {e}", file=sys.stderr
+                )
                 return str(timestamp)  # Return original as string
 
         created_at = format_timestamp(data.get("created_at", "N/A"))
@@ -95,7 +97,9 @@ def send_to_telegram(value, bot_token, chat_id):
 
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-        print(f"Sending to Telegram API: {url}, payload: {payload}", file=sys.stderr)
+        logger.info(
+            f"Sending to Telegram API: {url}, payload: {payload}", file=sys.stderr
+        )
         session = requests.Session()
         retries = Retry(
             total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504]
@@ -103,8 +107,8 @@ def send_to_telegram(value, bot_token, chat_id):
         session.mount("https://", HTTPAdapter(max_retries=retries))
         response = session.post(url, json=payload, timeout=10)
         response.raise_for_status()
-        print(f"Sent to Telegram: {message}", file=sys.stderr)
+        logger.info(f"Sent to Telegram: {message}", file=sys.stderr)
         return value
     except Exception as e:
-        print(f"Error sending to Telegram: {e}, message={value}", file=sys.stderr)
+        logger.info(f"Error sending to Telegram: {e}, message={value}", file=sys.stderr)
         return None

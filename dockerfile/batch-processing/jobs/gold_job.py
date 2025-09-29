@@ -3,25 +3,8 @@ import pyspark.sql.functions as F
 from common.io import write_delta
 from common.utils import get_spark
 
-if __name__ == "__main__":
-    spark = get_spark("Gold Job")
-    print("Starting Gold Job...")
-    bronze_path = f"s3a://tsc-bucket/bronze/raw_reviews"
-    silver_path = f"s3a://tsc-bucket/silver/reviews_with_sentiment"
-    gold_path = f"s3a://tsc-bucket/gold/reviews_summary"
 
-    # Read Bronze and Silver data
-    bronze_df = spark.read.format("delta").load(bronze_path)
-    silver_df = spark.read.format("delta").load(silver_path)
-
-    bronze_df.show(6)
-    bronze_df.printSchema()
-    print(f"Total records in Bronze: {bronze_df.count()}")
-    silver_df.show(6)
-    silver_df.printSchema()
-    print(f"Total records in Silver: {silver_df.count()}")
-
-    # Transform
+def transform(bronze_df, silver_df):
     print("Transform: aggregating sentiment by product & source...")
     gold_df = (
         silver_df.join(
@@ -45,6 +28,28 @@ if __name__ == "__main__":
         )
         .withColumn("positive_ratio", F.col("positive_count") / F.col("review_count"))
     )
+    return gold_df
+
+
+if __name__ == "__main__":
+    spark = get_spark("Gold Job")
+    print("Starting Gold Job...")
+    bronze_path = f"s3a://tsc-bucket/bronze/raw_reviews"
+    silver_path = f"s3a://tsc-bucket/silver/reviews_with_sentiment"
+    gold_path = f"s3a://tsc-bucket/gold/reviews_summary"
+
+    # Read Bronze and Silver data
+    bronze_df = spark.read.format("delta").load(bronze_path)
+    silver_df = spark.read.format("delta").load(silver_path)
+    bronze_df.show(6)
+    bronze_df.printSchema()
+    print(f"Total records in Bronze: {bronze_df.count()}")
+    silver_df.show(6)
+    silver_df.printSchema()
+    print(f"Total records in Silver: {silver_df.count()}")
+
+    # Transform
+    gold_df = transform(silver_df)
 
     # Load
     print("Writing Gold data to Delta Lake...")

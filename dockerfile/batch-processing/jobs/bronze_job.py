@@ -3,17 +3,9 @@ from common.io import read_postgres, write_delta
 from common.utils import get_spark
 from pyspark.sql.functions import col, current_date, date_sub, to_date
 
-if __name__ == "__main__":
-    bucket = "tsc-bucket"
-    schema = "bronze"
-    table_name = "raw_reviews"
-    path = f"s3a://{bucket}/{schema}/{table_name}"
 
-    spark = get_spark(f"{schema.capitalize()} Job")
-    print(f"Starting {schema.capitalize()} Job...")
-
-    # Extract
-    print("Extracting data from PostgreSQL...")
+def extract(path):
+    logger.info("Extracting data from PostgreSQL...")
     try:
         max_created_at = (
             spark.read.format("delta")
@@ -21,10 +13,10 @@ if __name__ == "__main__":
             .agg({"created_at": "max"})
             .collect()[0][0]
         )
-        print(f"Max created_at in Bronze: {max_created_at}")
+        logger.info(f"Max created_at in Bronze: {max_created_at}")
     except Exception as e:
         max_created_at = None
-        print("No Bronze data found yet.")
+        logger.info(f"Max created_at in Bronze: {max_created_at}")
     if max_created_at:  # Query Postgres incremental
         query = f"SELECT * FROM product_reviews WHERE created_at > '{max_created_at}'"
     else:
@@ -32,14 +24,28 @@ if __name__ == "__main__":
     dataframe = read_postgres(spark, query=query)
     dataframe.show(6)
     dataframe.printSchema()
-    print(f"Total records extracted: {dataframe.count()}")
+    logger.info(f"Total records extracted: {dataframe.count()}")
+
+
+if __name__ == "__main__":
+    bucket = "tsc-bucket"
+    schema = "bronze"
+    table_name = "raw_reviews"
+    path = f"s3a://{bucket}/{schema}/{table_name}"
+
+    spark = get_spark(f"{schema.capitalize()} Job")
+    logger = spark._jvm.org.apache.log4j.LogManager.getLogger(__name__)
+    logger.info(f"Starting {schema.capitalize()} Job...")
+
+    # Extract
+    dataframe = extract(path)
 
     # Load
-    print("Writing to Bronze Delta Lake...")
+    logger.info("Writing to Bronze Delta Lake...")
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {schema}")
     write_delta(dataframe, f"{schema}.{table_name}", path, mode="overwrite")
     spark.stop()
-    print(f"{schema.capitalize()} job completed successfully.")
+    logger.info(f"{schema.capitalize()} job completed successfully.")
 
     # Transform
     # print("Transforming data...")

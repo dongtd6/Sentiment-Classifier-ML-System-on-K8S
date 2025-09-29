@@ -9,7 +9,7 @@ pipeline {
     }
 
     environment{
-        registry = 'dongtd6/text-sentiment-classifier' //Image id push to Docker Hub
+        registry = 'dongtd6/text-sentiment-classifier:v1.2.8' //Image id push to Docker Hub
         registryCredential = 'dockerhub'    //Credential on Jenkins to login Docker Hub  
     }
 

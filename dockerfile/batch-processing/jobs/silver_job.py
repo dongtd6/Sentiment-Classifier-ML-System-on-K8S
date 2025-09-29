@@ -8,16 +8,9 @@ from pyspark.sql.functions import col, current_date, date_sub, lit, to_date
 from pyspark.sql.types import StringType
 from transforms.batch_prediction import batch_predict
 
-if __name__ == "__main__":
-    bucket = "tsc-bucket"
-    schema = "silver"
-    table_name = "reviews_with_sentiment"
-    spark = get_spark(f"{schema.capitalize()} Job")
-    print(f"Starting {schema.capitalize()} Job...")
 
-    # Extract
-    print("Extract: 🚀 Reading from Delta table in MinIO...")
-    silver_path = f"s3a://{bucket}/{schema}/{table_name}"
+def extract(silver_path):
+    logger.info("Extract: 🚀 Reading from Delta table in MinIO...")
     try:
         max_created_at = (
             spark.read.format("delta")
@@ -25,10 +18,10 @@ if __name__ == "__main__":
             .agg(F.max("created_at").alias("max_created_at"))
             .collect()[0]["max_created_at"]
         )
-        print(f"Max created_at in Silver: {max_created_at}")
+        logger.info(f"Max created_at in Silver: {max_created_at}")
     except Exception as e:
         max_created_at = None
-        print("No Silver data found yet.")
+        logger.info("No Silver data found yet.")
     bronze_path = f"s3a://{bucket}/bronze/raw_reviews"
     yesterday = date_sub(current_date(), 1)
     bronze_dataframe = (
@@ -37,16 +30,12 @@ if __name__ == "__main__":
         .filter((col("created_at") >= yesterday) & (col("created_at") < current_date()))
     )
     bronze_dataframe.show(6)
-    bronze_dataframe.printSchema()
-    print(f"Total records read: {bronze_dataframe.count()}")
+    bronze_dataframe.logger.infoSchema()
+    logger.info(f"Total records read: {bronze_dataframe.count()}")
 
-    # Register DataFrame as a temp view
-    # bronze_dataframe.createOrReplaceTempView("raw_reviews_delta_lake")
 
-    # Transform
-    print("Tranform data ...")
-    # Add column name "sentiment" to bronze_dataframe
-    # bronze_dataframe = bronze_dataframe.withColumn("sentiment", lit("unknown"))
+def transform(bronze_dataframe):
+    logger.info("Tranform data ...")
     bronze_dataframe = bronze_dataframe.withColumn(
         "sentiment", F.lit(None).cast(StringType())
     )
@@ -66,35 +55,56 @@ if __name__ == "__main__":
     bronze_dataframe = bronze_dataframe.drop("source")
     bronze_dataframe = bronze_dataframe.drop("is_deleted")
     bronze_dataframe.show(6)
-    bronze_dataframe.printSchema()
-    print(f"Total records after cleaning: {bronze_dataframe.count()}")
-    print("Update data ...")
+    bronze_dataframe.logger.infoSchema()
+    logger.info(f"Total records after cleaning: {bronze_dataframe.count()}")
+    logger.info("Update data ...")
     silver_dataframe = batch_predict(spark, bronze_dataframe)
     silver_dataframe.show(6)
-    silver_dataframe.printSchema()
-    print(f"Total records after prediction: {silver_dataframe.count()}")
+    silver_dataframe.logger.infoSchema()
+    logger.info(f"Total records after prediction: {silver_dataframe.count()}")
+
+
+if __name__ == "__main__":
+    bucket = "tsc-bucket"
+    schema = "silver"
+    table_name = "reviews_with_sentiment"
+    silver_path = f"s3a://{bucket}/{schema}/{table_name}"
+    spark = get_spark(f"{schema.capitalize()} Job")
+    logger.info(f"Starting {schema.capitalize()} Job...")
+
+    # Extract
+    bronze_dataframe = extract(silver_path)  # Check max creat at in Silver and extract
+
+    # Transform
+    silver_dataframe = transform(bronze_dataframe)
 
     # Load
-    print("Load: 🚀 Writing to Delta table in MinIO ...")
+    logger.info("Load: 🚀 Writing to Delta table in MinIO ...")
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {schema}")
     write_delta(
         silver_dataframe, f"{schema}.{table_name}", silver_path, mode="overwrite"
     )
     spark.stop()
-    print(f"{schema.capitalize()} job completed successfully.")
+    logger.info(f"{schema.capitalize()} job completed successfully.")
 
     # dataframe = bronze_dataframe.select("review_id", "product_id", "review_text", "sentiment", "source", "created_at")
     # dataframe.show(6)
-    # dataframe.printSchema()
-    # print(f"Total records after transformation: {dataframe.count()}")
+    # dataframe.logger.infoSchema()
+    # logger.info(f"Total records after transformation: {dataframe.count()}")
 
     # # Run SQL query
-    # print("🚀 Running SQL query...")
+    # logger.info("🚀 Running SQL query...")
     # dataframe_sql = spark.sql("""
     #     SELECT count(*) as cnt, source
     #     FROM raw_reviews_delta_lake
     #     GROUP BY source
     # """)
     # dataframe_sql.show()
-    # dataframe_sql.printSchema()
-    # print(f"Total records after SQL transformation: {dataframe_sql.count()}")
+    # dataframe_sql.logger.infoSchema()
+    # logger.info(f"Total records after SQL transformation: {dataframe_sql.count()}")
+
+    # Register DataFrame as a temp view
+    # bronze_dataframe.createOrReplaceTempView("raw_reviews_delta_lake")
+
+    # Add column name "sentiment" to bronze_dataframe
+    # bronze_dataframe = bronze_dataframe.withColumn("sentiment", lit("unknown"))

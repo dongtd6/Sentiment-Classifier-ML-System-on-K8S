@@ -7,8 +7,8 @@ postgres:
   table: "product_reviews"
 
 s3:
-  #endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
-  endpoint: "http://localhost:9000"
+  endpoint: "http://minio-tenant-hl.storage.svc.cluster.local:9000"
+  #endpoint: "http://localhost:9000"
   access_key: minio
   secret_key: minio123
   bucket: tsc-bucket

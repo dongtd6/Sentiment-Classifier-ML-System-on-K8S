@@ -470,7 +470,7 @@ kubectl port-forward svc/postgresql 5432:5432 -n storage
 ```
 - Init data:
 ```bash
-cd ./helm-charts/postgresql/initdata && python inputdata.py
+cd ./helm-charts/postgresql/initdata && python copydata.py
 ```
 <div style="text-align: center;"> <img src="images/init-data.png" style="width: 888px; height: auto;"></div>
 

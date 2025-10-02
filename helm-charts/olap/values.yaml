@@ -1,0 +1,48 @@
+#olap/values.yaml
+general:
+  namespace: storage
+postgres:
+  credentials:
+    name: postgres-credentials-separate
+    username: pgadmin
+    password: pw123
+hiveMetastore:
+  name: hive-metastore
+  replicas: 1
+  image: starburstdata/hive:3.1.2-e.18
+  port: 9083
+  jdbcURL:
+    hostname: postgresql
+    port: 5432
+    dbName: hive
+    namespace: storage
+    credentials: postgres-credentials-separate
+  s3URL:
+    hostname: minio-tenant-hl
+    port: 9000
+    namespace: storage
+    credentials: minio-credentials
+  svcType: ClusterIP
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+trino:
+  name: trino
+  replicas: 1
+  image: trinodb/trino:410
+  port: 8080
+  etcMountPath: /usr/lib/trino/etc
+  catalogMountPath: /etc/trino/catalog
+  protocol: TCP
+  svcType: ClusterIP
+  resources:
+    requests:
+      cpu: 200m
+      memory: 3Gi
+    limits:
+      cpu: 1000m
+      memory: 5Gi

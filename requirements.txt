@@ -18,8 +18,11 @@ opentelemetry-instrumentation
 opentelemetry-instrumentation-fastapi
 opentelemetry-instrumentation-asgi
 
+mlflow
 
 # joblib==1.1.1
 # scikit-learn==1.2.0
 
 #pip install -r requirements.txt --no-cache-dir
+#uv venv .venv --python=3.8
+#uv pip install -r requirements.txt

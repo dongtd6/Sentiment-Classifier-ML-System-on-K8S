@@ -1,0 +1,31 @@
+{
+  "name": "postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "plugin.name": "pgoutput",
+
+
+    "bootstrap.servers": "kafka-kafka-bootstrap.infrastructure.svc:9192",
+
+
+    "database.hostname": "postgresql.storage.svc.cluster.local",
+    "database.port": "5432",
+    "database.user": "pgadmin",
+    "database.password": "pw123",
+    "database.dbname": "crm_db",
+
+
+    "database.server.name": "crm_db_server",
+    "table.include.list": "public.product_reviews",
+    "publication.name": "debezium",
+    "slot.name": "debezium_slot",
+    "topic.prefix": "cdc",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false"
+
+
+  }
+}

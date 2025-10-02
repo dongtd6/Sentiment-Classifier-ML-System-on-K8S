@@ -2,7 +2,7 @@
 // which can be accessed by var.project_id
 variable "project_id" {
   description = "The project ID to host the cluster in"
-  default     = "dongtd2"
+  default     = "dongtd3"
 }
 
 variable "zone" {

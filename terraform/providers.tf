@@ -20,5 +20,5 @@ provider "kubernetes" {
     command     = "gke-gcloud-auth-plugin" # hoặc "gcloud"  gcloud auth application-default login
     args        = ["get-credentials", google_container_cluster.gke-cluster.name, "--zone", google_container_cluster.gke-cluster.location, "--project", var.project_id]
   }
-  //config_path = "~/.kube/config"
+  config_path = "~/.kube/config"
 }
